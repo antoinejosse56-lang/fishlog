@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a1628">
+<title>FishLog</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ocean-deep: #0a1628;
+  --ocean-mid: #0d2545;
+  --ocean-light: #1a3a6b;
+  --ocean-surface: #1e4d8c;
+  --accent: #29b6f6;
+  --accent-warm: #ffa726;
+  --accent-green: #26a69a;
+  --text-primary: #f0f4ff;
+  --text-secondary: rgba(240,244,255,0.65);
+  --text-muted: rgba(240,244,255,0.35);
+  --glass: rgba(255,255,255,0.07);
+  --glass-border: rgba(255,255,255,0.12);
+  --glass-hover: rgba(255,255,255,0.12);
+  --danger: #ef5350;
+  --success: #26a69a;
+  --r: 14px;
+  --r-sm: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--ocean-deep); }
+body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
+
+/* BG */
+#bg {
+  position: fixed; inset: 0; z-index: 0;
+  background: radial-gradient(ellipse at 20% 0%, #0d3060 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 100%, #0a2a50 0%, transparent 60%),
+              linear-gradient(180deg, #0a1628 0%, #091422 100%);
+}
+#bg::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* APP */
+#app { position: fixed; inset: 0; z-index: 1; display: flex; flex-direction: column; }
+
+/* SCREENS */
+.screen { display: none; flex-direction: column; height: 100%; overflow: hidden; animation: fadeIn 0.3s ease; }
+.screen.active { display: flex; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* HEADER */
+.header {
+  padding: 52px 20px 16px;
+  background: linear-gradient(180deg, rgba(10,22,40,0.95) 0%, transparent 100%);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.header h1 { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+.header h1 span { color: var(--accent); }
+.header-sub { font-size: 13px; color: var(--text-secondary); }
+.header-badge {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: 20px; padding: 6px 12px; font-size: 12px; color: var(--accent);
+}
+
+/* SCROLL AREA */
+.scroll { flex: 1; overflow-y: auto; padding: 16px 16px 100px; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(10,18,32,0.95); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--glass-border);
+  display: flex; padding: 8px 0 24px; z-index: 100;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 0; cursor: pointer; transition: all 0.2s; color: var(--text-muted);
+  font-size: 10px; font-family: 'DM Sans', sans-serif;
+}
+.nav-item.active { color: var(--accent); }
+.nav-item svg { width: 22px; height: 22px; }
+.nav-fab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 0; cursor: pointer; margin-top: -24px;
+}
+.fab-btn {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #0288d1);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(41,182,246,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab-btn:active { transform: scale(0.93); box-shadow: 0 2px 10px rgba(41,182,246,0.3); }
+.fab-btn svg { width: 24px; height: 24px; color: white; }
+.fab-label { font-size: 10px; color: var(--accent); margin-top: 2px; }
+
+/* CARDS */
+.card {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: var(--r); padding: 16px; margin-bottom: 12px;
+  transition: background 0.2s;
+}
+.card:active { background: var(--glass-hover); }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.card-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+.card-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+/* STATS ROW */
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.stat-card {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: var(--r-sm); padding: 12px; text-align: center;
+}
+.stat-val { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: var(--accent); }
+.stat-lbl { font-size: 10px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* QUICK ACTIONS */
+.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.qa-card {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: var(--r); padding: 16px; cursor: pointer;
+  transition: all 0.2s; display: flex; flex-direction: column; gap: 8px;
+}
+.qa-card:active { transform: scale(0.97); background: var(--glass-hover); }
+.qa-card.primary { background: rgba(41,182,246,0.12); border-color: rgba(41,182,246,0.3); }
+.qa-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.qa-label { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+.qa-desc { font-size: 11px; color: var(--text-secondary); }
+
+/* FORM */
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; display: block; }
+.form-input, .form-select, .form-textarea {
+  width: 100%; background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: var(--r-sm); padding: 12px 14px; color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  outline: none; transition: border-color 0.2s, background 0.2s;
+  appearance: none; -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--accent); background: rgba(41,182,246,0.08);
+}
+.form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='rgba(240,244,255,0.5)' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+.form-select option { background: var(--ocean-mid); color: var(--text-primary); }
+.form-textarea { resize: none; height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+/* CHIPS */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: 20px; padding: 7px 14px; font-size: 12px; cursor: pointer;
+  transition: all 0.15s; color: var(--text-secondary);
+}
+.chip.selected { background: rgba(41,182,246,0.2); border-color: var(--accent); color: var(--accent); }
+.chip.warn.selected { background: rgba(255,167,38,0.2); border-color: var(--accent-warm); color: var(--accent-warm); }
+
+/* SECTION TITLE */
+.section-title {
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+  margin: 20px 0 10px; display: flex; align-items: center; gap: 8px;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--glass-border); }
+
+/* BTN */
+.btn {
+  width: 100%; padding: 15px; border-radius: var(--r); border: none;
+  font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #0288d1);
+  color: white; box-shadow: 0 4px 20px rgba(41,182,246,0.3);
+}
+.btn-primary:active { transform: scale(0.98); }
+.btn-ghost { background: var(--glass); border: 1px solid var(--glass-border); color: var(--text-secondary); }
+
+/* BADGE */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600;
+}
+.badge-blue { background: rgba(41,182,246,0.15); color: var(--accent); border: 1px solid rgba(41,182,246,0.3); }
+.badge-green { background: rgba(38,166,154,0.15); color: var(--accent-green); border: 1px solid rgba(38,166,154,0.3); }
+.badge-warm { background: rgba(255,167,38,0.15); color: var(--accent-warm); border: 1px solid rgba(255,167,38,0.3); }
+.badge-score { background: linear-gradient(135deg, rgba(41,182,246,0.2), rgba(2,136,209,0.2)); color: var(--accent); border: 1px solid rgba(41,182,246,0.4); font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; }
+
+/* SESSION CARD */
+.session-card {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: var(--r); padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
+  transition: all 0.2s;
+}
+.session-card:active { background: var(--glass-hover); }
+.session-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.session-spot { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+.session-date { font-size: 11px; color: var(--text-muted); }
+.session-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* RECO CARD */
+.reco-card {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: var(--r); padding: 16px; margin-bottom: 10px;
+}
+.reco-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.reco-spot { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; }
+.reco-detail { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+.reco-leurre {
+  background: rgba(255,167,38,0.1); border: 1px solid rgba(255,167,38,0.25);
+  border-radius: var(--r-sm); padding: 8px 12px; margin-top: 8px;
+  font-size: 12px; color: var(--accent-warm);
+}
+.reco-leurre strong { display: block; font-family: 'Syne', sans-serif; font-size: 13px; margin-bottom: 2px; }
+
+/* TOAST */
+#toast {
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: rgba(38,166,154,0.95); color: white; padding: 12px 24px;
+  border-radius: 30px; font-size: 13px; font-weight: 500; z-index: 999;
+  opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.error { background: rgba(239,83,80,0.95); }
+
+/* LOADER */
+.loader { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+.loading-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin: 0 3px; animation: bounce 1s infinite; }
+.loading-dot:nth-child(2) { animation-delay: 0.15s; }
+.loading-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce { 0%,80%,100%{ transform:scale(0.6); opacity:0.4; } 40%{ transform:scale(1); opacity:1; } }
+
+/* GPS BTN */
+.gps-btn {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: var(--r-sm); cursor: pointer; color: var(--accent); font-size: 13px;
+  transition: all 0.2s; width: 100%;
+}
+.gps-btn:active { background: var(--glass-hover); }
+
+/* PHOTO BTN */
+.photo-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 20px; background: var(--glass); border: 1px dashed var(--glass-border);
+  border-radius: var(--r-sm); cursor: pointer; color: var(--text-secondary); font-size: 12px;
+  transition: all 0.2s; width: 100%;
+}
+.photo-btn:active { background: var(--glass-hover); }
+.photo-preview { width: 100%; height: 140px; object-fit: cover; border-radius: var(--r-sm); display: none; }
+
+/* EMPTY STATE */
+.empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; }
+.empty-desc { font-size: 13px; line-height: 1.6; }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--glass-border); margin: 16px 0; }
+
+/* MARÉE INDICATOR */
+.maree-indicator { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.maree-bar { flex: 1; height: 4px; background: var(--glass); border-radius: 2px; overflow: hidden; }
+.maree-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-green)); border-radius: 2px; transition: width 0.5s; }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="app">
+
+  <!-- ACCUEIL -->
+  <div class="screen active" id="screen-home">
+    <div class="header">
+      <div class="header-top">
+        <h1>Fish<span>Log</span></h1>
+        <div class="header-badge" id="maree-badge">⚓ Chargement...</div>
+      </div>
+      <div class="header-sub" id="home-sub">Lorient · Journal de pêche collaboratif</div>
+    </div>
+    <div class="scroll">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-val" id="stat-sessions">—</div><div class="stat-lbl">Sessions</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-prises">—</div><div class="stat-lbl">Prises</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-spots">—</div><div class="stat-lbl">Spots</div></div>
+      </div>
+      <div class="section-title">Dernières sessions</div>
+      <div id="recent-sessions"><div class="loader"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div></div>
+    </div>
+  </div>
+
+  <!-- NOUVELLE SESSION -->
+  <div class="screen" id="screen-session">
+    <div class="header">
+      <div class="header-top">
+        <h1>+ <span>Session</span></h1>
+        <div class="header-badge" id="session-date-badge">—</div>
+      </div>
+      <div class="header-sub">Enregistre ta sortie pêche</div>
+    </div>
+    <div class="scroll">
+      <div class="section-title">Lieu</div>
+      <div class="form-group">
+        <label class="form-label">Spot</label>
+        <select class="form-select" id="sel-spot">
+          <option value="">Choisir un spot...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nouveau spot (optionnel)</label>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" id="new-spot-nom" placeholder="Nom du spot" style="flex:1">
+          <button class="btn btn-ghost" style="width:auto;padding:0 14px;font-size:12px" onclick="addSpot()">+ Ajouter</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">GPS</label>
+        <button class="gps-btn" onclick="getGPS()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          <span id="gps-text">Capturer ma position</span>
+        </button>
+        <input type="hidden" id="gps-lat"><input type="hidden" id="gps-lng">
+      </div>
+
+      <div class="section-title">Météo</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Temp. air (°C)</label>
+          <input class="form-input" type="number" id="temp-air" placeholder="ex: 14">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Temp. eau (°C)</label>
+          <input class="form-input" type="number" id="temp-eau" placeholder="ex: 12">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Vent direction</label>
+          <select class="form-select" id="vent-dir">
+            <option value="">—</option>
+            <option>N</option><option>NE</option><option>E</option><option>SE</option>
+            <option>S</option><option>SO</option><option>O</option><option>NO</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Force (km/h)</label>
+          <input class="form-input" type="number" id="vent-force" placeholder="ex: 20">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ensoleillement</label>
+        <div class="chips" id="chips-soleil">
+          <div class="chip" data-val="soleil" onclick="selectChip(this,'chips-soleil')">☀️ Ensoleillé</div>
+          <div class="chip" data-val="variable" onclick="selectChip(this,'chips-soleil')">🌤 Variable</div>
+          <div class="chip" data-val="couvert" onclick="selectChip(this,'chips-soleil')">☁️ Couvert</div>
+          <div class="chip" data-val="pluie" onclick="selectChip(this,'chips-soleil')">🌧 Pluie</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Pression (hPa)</label>
+          <input class="form-input" type="number" id="pression" placeholder="ex: 1013">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Turbidité</label>
+          <select class="form-select" id="turbidite">
+            <option value="">—</option>
+            <option value="claire">Claire</option>
+            <option value="teintee">Légèrement teintée</option>
+            <option value="trouble">Trouble</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-title">Marée</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Coefficient</label>
+          <input class="form-input" type="number" id="coef-maree" placeholder="ex: 80" min="20" max="120">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Moment</label>
+          <select class="form-select" id="moment-maree">
+            <option value="">—</option>
+            <option value="montante">Montante</option>
+            <option value="descendante">Descendante</option>
+            <option value="etale_hm">Étale HM</option>
+            <option value="etale_bm">Étale BM</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-title">Technique & leurre</div>
+      <div class="form-group">
+        <label class="form-label">Technique</label>
+        <div class="chips" id="chips-technique">
+          <div class="chip" data-val="lancer" onclick="selectChip(this,'chips-technique')">Lancer-ramener</div>
+          <div class="chip" data-val="verticale" onclick="selectChip(this,'chips-technique')">Verticale</div>
+          <div class="chip" data-val="surfcasting" onclick="selectChip(this,'chips-technique')">Surfcasting</div>
+          <div class="chip" data-val="jigging" onclick="selectChip(this,'chips-technique')">Jigging</div>
+          <div class="chip" data-val="traine" onclick="selectChip(this,'chips-technique')">Traîne</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nom du leurre</label>
+          <input class="form-input" id="leurre-nom" placeholder="ex: Slug jaune">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="leurre-type">
+            <option value="">—</option>
+            <option value="souple">Souple</option>
+            <option value="dur">Dur</option>
+            <option value="jig">Jig</option>
+            <option value="naturel">Appât naturel</option>
+            <option value="popper">Popper</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Couleur</label>
+          <input class="form-input" id="leurre-couleur" placeholder="ex: jaune fluo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Taille/Poids</label>
+          <input class="form-input" id="leurre-taille" placeholder="ex: 20g / 12cm">
+        </div>
+      </div>
+
+      <div class="section-title">Résultat</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nb de prises</label>
+          <input class="form-input" type="number" id="nb-prises" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Succès ?</label>
+          <div class="chips" id="chips-succes" style="margin-top:4px">
+            <div class="chip" data-val="true" onclick="selectChip(this,'chips-succes')">✅ Oui</div>
+            <div class="chip warn" data-val="false" onclick="selectChip(this,'chips-succes','warn')">❌ Non</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Espèce(s)</label>
+        <input class="form-input" id="espece" placeholder="ex: Bar, Daurade...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Photo (optionnel)</label>
+        <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this)">
+        <img id="photo-preview" class="photo-preview">
+        <div class="photo-btn" id="photo-btn" onclick="document.getElementById('photo-input').click()">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Ajouter une photo
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Commentaire</label>
+        <textarea class="form-textarea" id="commentaire" placeholder="Observations, conditions particulières..."></textarea>
+      </div>
+      <div style="margin-top:8px">
+        <button class="btn btn-primary" onclick="saveSession()">💾 Enregistrer la session</button>
+      </div>
+      <div style="height:8px"></div>
+    </div>
+  </div>
+
+  <!-- HISTORIQUE -->
+  <div class="screen" id="screen-historique">
+    <div class="header">
+      <div class="header-top">
+        <h1>📋 <span>Historique</span></h1>
+      </div>
+      <div class="header-sub">Toutes vos sessions</div>
+    </div>
+    <div class="scroll">
+      <div id="sessions-list"><div class="loader"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div></div>
+    </div>
+  </div>
+
+  <!-- CONSEILS -->
+  <div class="screen" id="screen-conseils">
+    <div class="header">
+      <div class="header-top">
+        <h1>🧠 <span>Conseils</span></h1>
+      </div>
+      <div class="header-sub">Basé sur votre historique</div>
+    </div>
+    <div class="scroll">
+      <div class="section-title">Conditions du jour</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Coeff. marée</label>
+          <input class="form-input" type="number" id="r-coef" placeholder="ex: 80">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Moment</label>
+          <select class="form-select" id="r-moment">
+            <option value="">—</option>
+            <option value="montante">Montante</option>
+            <option value="descendante">Descendante</option>
+            <option value="etale_hm">Étale HM</option>
+            <option value="etale_bm">Étale BM</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ensoleillement</label>
+        <div class="chips" id="chips-r-soleil">
+          <div class="chip" data-val="soleil" onclick="selectChip(this,'chips-r-soleil')">☀️ Ensoleillé</div>
+          <div class="chip" data-val="variable" onclick="selectChip(this,'chips-r-soleil')">🌤 Variable</div>
+          <div class="chip" data-val="couvert" onclick="selectChip(this,'chips-r-soleil')">☁️ Couvert</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Turbidité</label>
+        <div class="chips" id="chips-r-turb">
+          <div class="chip" data-val="claire" onclick="selectChip(this,'chips-r-turb')">💎 Claire</div>
+          <div class="chip" data-val="teintee" onclick="selectChip(this,'chips-r-turb')">🟡 Teintée</div>
+          <div class="chip" data-val="trouble" onclick="selectChip(this,'chips-r-turb')">🟤 Trouble</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="getReco()" style="margin-bottom:20px">🔍 Trouver les meilleurs spots</button>
+      <div id="reco-results"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="showScreen('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Accueil
+    </div>
+    <div class="nav-item" id="nav-historique" onclick="showScreen('historique')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Historique
+    </div>
+    <div class="nav-fab" onclick="showScreen('session')">
+      <div class="fab-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <span class="fab-label">Session</span>
+    </div>
+    <div class="nav-item" id="nav-conseils" onclick="showScreen('conseils')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Conseils
+    </div>
+    <div class="nav-item" id="nav-spots" onclick="showScreen('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Spots
+    </div>
+  </nav>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://fysyfyyppjakpatkqjyx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable__shVd4oURnQpWbcUw5xRMQ_TQl4pvvH';
+
+async function sb(endpoint, options = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + endpoint, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || 'return=representation',
+      ...options.headers
+    },
+    ...options
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// STATE
+let currentGPS = { lat: null, lng: null };
+let spots = [];
+let sessions = [];
+let chipState = {};
+
+// INIT
+document.addEventListener('DOMContentLoaded', async () => {
+  updateSessionDate();
+  await loadSpots();
+  await loadStats();
+  await loadRecentSessions();
+  updateMareeBadge();
+});
+
+function updateSessionDate() {
+  const now = new Date();
+  const opts = { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' };
+  document.getElementById('session-date-badge').textContent = now.toLocaleDateString('fr-FR', opts);
+}
+
+function updateMareeBadge() {
+  const h = new Date().getHours();
+  let maree = h >= 6 && h < 12 ? '↑ Montante' : h >= 12 && h < 18 ? '↓ Descendante' : '— Étale';
+  document.getElementById('maree-badge').textContent = '⚓ ' + maree;
+  const d = new Date();
+  document.getElementById('home-sub').textContent = 'Lorient · ' + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+}
+
+async function loadSpots() {
+  try {
+    spots = await sb('spots?select=*&order=nom');
+    const sel = document.getElementById('sel-spot');
+    sel.innerHTML = '<option value="">Choisir un spot...</option>';
+    spots.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.id; o.textContent = s.nom;
+      sel.appendChild(o);
+    });
+  } catch(e) { console.error('Spots:', e); }
+}
+
+async function loadStats() {
+  try {
+    const [sesData, capData, spotData] = await Promise.all([
+      sb('sessions?select=id'),
+      sb('captures?select=id'),
+      sb('spots?select=id')
+    ]);
+    document.getElementById('stat-sessions').textContent = sesData.length;
+    document.getElementById('stat-prises').textContent = capData.length;
+    document.getElementById('stat-spots').textContent = spotData.length;
+  } catch(e) { console.error('Stats:', e); }
+}
+
+async function loadRecentSessions() {
+  try {
+    const data = await sb('sessions?select=*,spots(nom)&order=created_at.desc&limit=5');
+    sessions = data;
+    renderRecentSessions(data);
+  } catch(e) {
+    document.getElementById('recent-sessions').innerHTML = '<div class="empty"><div class="empty-icon">🎣</div><div class="empty-title">Aucune session</div><div class="empty-desc">Lance ta première session !</div></div>';
+  }
+}
+
+function renderRecentSessions(data) {
+  const el = document.getElementById('recent-sessions');
+  if (!data || data.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🎣</div><div class="empty-title">Aucune session</div><div class="empty-desc">Appuie sur + pour enregistrer ta première sortie</div></div>';
+    return;
+  }
+  el.innerHTML = data.map(s => {
+    const date = new Date(s.created_at).toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+    const spot = s.spots?.nom || '—';
+    const prises = s.nb_prises || 0;
+    const succes = s.succes;
+    return `<div class="session-card">
+      <div class="session-card-header">
+        <div><div class="session-spot">${spot}</div><div class="session-date">${date}</div></div>
+        <span class="badge ${succes ? 'badge-green' : 'badge-warm'}">${succes ? '✅ Succès' : '—'}</span>
+      </div>
+      <div class="session-meta">
+        ${s.ensoleillement ? `<span class="badge badge-blue">${s.ensoleillement}</span>` : ''}
+        ${s.moment_maree ? `<span class="badge badge-blue">Coeff ${s.coef_maree || '—'} · ${s.moment_maree}</span>` : ''}
+        <span class="badge badge-warm">${prises} prise${prises > 1 ? 's' : ''}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadHistorique() {
+  try {
+    const data = await sb('sessions?select=*,spots(nom)&order=created_at.desc');
+    const el = document.getElementById('sessions-list');
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Aucune session</div><div class="empty-desc">Tes sorties apparaîtront ici</div></div>';
+      return;
+    }
+    el.innerHTML = data.map(s => {
+      const date = new Date(s.created_at).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+      const spot = s.spots?.nom || '—';
+      const prises = s.nb_prises || 0;
+      return `<div class="session-card">
+        <div class="session-card-header">
+          <div><div class="session-spot">${spot}</div><div class="session-date">${date}</div></div>
+          <span class="badge ${s.succes ? 'badge-green' : 'badge-warm'}">${prises} prise${prises>1?'s':''}</span>
+        </div>
+        <div class="session-meta">
+          ${s.ensoleillement ? `<span class="badge badge-blue">${s.ensoleillement}</span>` : ''}
+          ${s.coef_maree ? `<span class="badge badge-blue">Coeff ${s.coef_maree}</span>` : ''}
+          ${s.moment_maree ? `<span class="badge badge-blue">${s.moment_maree}</span>` : ''}
+          ${s.turbidite ? `<span class="badge badge-warm">${s.turbidite}</span>` : ''}
+        </div>
+        ${s.commentaire ? `<div style="margin-top:8px;font-size:12px;color:var(--text-secondary)">${s.commentaire}</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('sessions-list').innerHTML = '<div class="loader">Erreur de chargement</div>';
+  }
+}
+
+// CHIPS
+function selectChip(el, groupId, mode) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  chipState[groupId] = el.dataset.val;
+}
+
+function getChip(groupId) {
+  return chipState[groupId] || null;
+}
+
+// GPS
+function getGPS() {
+  const btn = document.getElementById('gps-text');
+  btn.textContent = 'Localisation...';
+  if (!navigator.geolocation) { showToast('GPS non disponible', true); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    currentGPS.lat = pos.coords.latitude;
+    currentGPS.lng = pos.coords.longitude;
+    document.getElementById('gps-lat').value = currentGPS.lat;
+    document.getElementById('gps-lng').value = currentGPS.lng;
+    btn.textContent = `📍 ${currentGPS.lat.toFixed(4)}, ${currentGPS.lng.toFixed(4)}`;
+  }, () => {
+    showToast('Impossible d\'obtenir le GPS', true);
+    btn.textContent = 'Capturer ma position';
+  });
+}
+
+// PHOTO
+function previewPhoto(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const preview = document.getElementById('photo-preview');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      document.getElementById('photo-btn').style.display = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// ADD SPOT
+async function addSpot() {
+  const nom = document.getElementById('new-spot-nom').value.trim();
+  if (!nom) { showToast('Entre un nom de spot', true); return; }
+  try {
+    const lat = currentGPS.lat;
+    const lng = currentGPS.lng;
+    await sb('spots', { method: 'POST', body: JSON.stringify({ nom, latitude: lat, longitude: lng }) });
+    document.getElementById('new-spot-nom').value = '';
+    await loadSpots();
+    showToast('Spot ajouté ✅');
+  } catch(e) { showToast('Erreur ajout spot', true); }
+}
+
+// SAVE SESSION
+async function saveSession() {
+  const spotId = document.getElementById('sel-spot').value;
+  if (!spotId) { showToast('Choisis un spot', true); return; }
+
+  const session = {
+    spot_id: spotId,
+    user_id: 'user1',
+    vent_direction: document.getElementById('vent-dir').value || null,
+    vent_force: parseInt(document.getElementById('vent-force').value) || null,
+    temp_air: parseFloat(document.getElementById('temp-air').value) || null,
+    temp_eau: parseFloat(document.getElementById('temp-eau').value) || null,
+    ensoleillement: getChip('chips-soleil'),
+    pression: parseFloat(document.getElementById('pression').value) || null,
+    turbidite: document.getElementById('turbidite').value || null,
+    coef_maree: parseInt(document.getElementById('coef-maree').value) || null,
+    moment_maree: document.getElementById('moment-maree').value || null,
+    nb_prises: parseInt(document.getElementById('nb-prises').value) || 0,
+    succes: getChip('chips-succes') === 'true',
+    commentaire: document.getElementById('commentaire').value || null
+  };
+
+  try {
+    const [newSession] = await sb('sessions', { method: 'POST', body: JSON.stringify(session) });
+
+    const leurreNom = document.getElementById('leurre-nom').value;
+    if (leurreNom && newSession) {
+      await sb('leurres', { method: 'POST', body: JSON.stringify({
+        session_id: newSession.id,
+        nom: leurreNom,
+        type: document.getElementById('leurre-type').value || null,
+        couleur: document.getElementById('leurre-couleur').value || null,
+        taille_poids: document.getElementById('leurre-taille').value || null,
+        technique: getChip('chips-technique')
+      })});
+    }
+
+    const espece = document.getElementById('espece').value;
+    if (espece && newSession) {
+      await sb('captures', { method: 'POST', body: JSON.stringify({
+        session_id: newSession.id,
+        espece: espece
+      })});
+    }
+
+    showToast('Session enregistrée ✅');
+    resetForm();
+    await loadStats();
+    await loadRecentSessions();
+    setTimeout(() => showScreen('home'), 1200);
+  } catch(e) {
+    console.error(e);
+    showToast('Erreur : ' + e.message, true);
+  }
+}
+
+function resetForm() {
+  ['vent-dir','vent-force','temp-air','temp-eau','pression','turbidite','coef-maree','moment-maree','nb-prises','commentaire','leurre-nom','leurre-type','leurre-couleur','leurre-taille','espece'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
+  chipState = {};
+  currentGPS = { lat: null, lng: null };
+  document.getElementById('gps-text').textContent = 'Capturer ma position';
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('photo-btn').style.display = 'flex';
+  document.getElementById('sel-spot').value = '';
+}
+
+// MOTEUR DE RECOMMANDATION
+async function getReco() {
+  const coef = parseInt(document.getElementById('r-coef').value) || null;
+  const moment = document.getElementById('r-moment').value || null;
+  const soleil = getChip('chips-r-soleil');
+  const turb = getChip('chips-r-turb');
+
+  document.getElementById('reco-results').innerHTML = '<div class="loader"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>';
+
+  try {
+    const allSessions = await sb('sessions?select=*,spots(nom,id),leurres(*)&eq.succes=true&order=created_at.desc');
+
+    const scored = [];
+    const spotMap = {};
+
+    allSessions.forEach(s => {
+      let score = 0;
+      if (coef && s.coef_maree) {
+        const diff = Math.abs(coef - s.coef_maree);
+        if (diff <= 10) score += 25;
+        else if (diff <= 20) score += 15;
+        else if (diff <= 30) score += 8;
+      }
+      if (moment && s.moment_maree === moment) score += 25;
+      if (soleil && s.ensoleillement === soleil) score += 20;
+      if (turb && s.turbidite === turb) score += 20;
+      score += (s.nb_prises || 0) * 5;
+
+      const spotId = s.spot_id;
+      if (!spotMap[spotId]) {
+        spotMap[spotId] = { spot: s.spots, score: 0, sessions: 0, leurres: [] };
+      }
+      spotMap[spotId].score += score;
+      spotMap[spotId].sessions += 1;
+      if (s.leurres && s.leurres.length > 0) {
+        s.leurres.forEach(l => { if (l.nom) spotMap[spotId].leurres.push(l); });
+      }
+    });
+
+    const results = Object.values(spotMap)
+      .filter(x => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4);
+
+    if (results.length === 0) {
+      document.getElementById('reco-results').innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">Pas encore assez de données</div>
+          <div class="empty-desc">Enregistre quelques sessions pour obtenir des recommandations personnalisées</div>
+        </div>`;
+      return;
+    }
+
+    document.getElementById('reco-results').innerHTML = `
+      <div class="section-title">Résultats</div>
+      ${results.map((r, i) => {
+        const bestLeurre = r.leurres.length > 0 ? r.leurres[0] : null;
+        const scoreDisplay = Math.min(99, Math.round(r.score / Math.max(1, r.sessions) * 2));
+        return `<div class="reco-card">
+          <div class="reco-header">
+            <div>
+              <div class="reco-spot">${r.spot?.nom || 'Spot inconnu'}</div>
+              <div class="reco-detail">${r.sessions} session${r.sessions>1?'s':''} similaire${r.sessions>1?'s':''}</div>
+            </div>
+            <span class="badge badge-score">Score ${scoreDisplay}</span>
+          </div>
+          ${bestLeurre ? `<div class="reco-leurre">
+            <strong>🎣 ${bestLeurre.nom}${bestLeurre.taille_poids ? ' · ' + bestLeurre.taille_poids : ''}</strong>
+            ${bestLeurre.couleur ? bestLeurre.couleur : ''}${bestLeurre.technique ? ' · ' + bestLeurre.technique : ''}
+          </div>` : ''}
+        </div>`;
+      }).join('')}`;
+  } catch(e) {
+    document.getElementById('reco-results').innerHTML = '<div class="loader">Erreur de chargement</div>';
+    console.error(e);
+  }
+}
+
+// NAVIGATION
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
+  if (name === 'historique') loadHistorique();
+  if (name === 'session') updateSessionDate();
+  window.scrollTo(0, 0);
+}
+
+// TOAST
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isError ? ' error' : '');
+  setTimeout(() => t.className = '', 2800);
+}
+</script>
+</body>
+</html>
