@@ -845,7 +845,7 @@ async function getReco() {
   document.getElementById('reco-results').innerHTML = '<div class="loader"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>';
 
   try {
-    const allSessions = await sb('sessions?select=*,spots(nom,id),leurres(*)&eq.succes=true&order=created_at.desc');
+    const allSessions = await sb('sessions?select=*,spots(nom,id),leurres(*)&order=created_at.desc');
 
     const scored = [];
     const spotMap = {};
