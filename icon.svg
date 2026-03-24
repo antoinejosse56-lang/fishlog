@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#0a1628"/>
+  <circle cx="256" cy="256" r="210" fill="#0d2545"/>
+  <circle cx="256" cy="256" r="175" fill="#0a1f3d" opacity="0.6"/>
+
+  <!-- Pêcheur (silhouette droite) -->
+  <circle cx="360" cy="155" r="22" fill="#1a3a6b"/>
+  <path d="M360 177 L345 240 L330 310 L355 310 L365 255 L375 310 L398 310 L385 240 L373 177Z" fill="#1a3a6b"/>
+  <path d="M345 200 L315 230 L325 240 L355 215Z" fill="#1a3a6b"/>
+  <path d="M373 200 L395 215 L385 225 L368 212Z" fill="#1a3a6b"/>
+
+  <!-- Canne à pêche -->
+  <line x1="318" y1="228" x2="160" y2="100" stroke="#f0f4ff" stroke-width="5" stroke-linecap="round"/>
+  <!-- Fil -->
+  <path d="M163 103 Q140 130 148 180 Q152 210 165 230" stroke="#29b6f6" stroke-width="2" fill="none" opacity="0.8" stroke-dasharray="6 4"/>
+
+  <!-- Poisson (style rétro) -->
+  <!-- Corps -->
+  <ellipse cx="175" cy="255" rx="75" ry="42" fill="#29b6f6" transform="rotate(-15 175 255)"/>
+  <!-- Ventre -->
+  <ellipse cx="178" cy="260" rx="55" ry="28" fill="#4fc3f7" transform="rotate(-15 178 260)" opacity="0.7"/>
+  <!-- Queue -->
+  <path d="M108 240 Q85 215 78 232 Q85 250 108 255Z" fill="#0288d1"/>
+  <path d="M108 255 Q85 260 78 278 Q90 280 108 265Z" fill="#0288d1"/>
+  <!-- Nageoire dorsale -->
+  <path d="M170 215 Q185 195 200 212 Q190 218 175 220Z" fill="#0288d1"/>
+  <!-- Nageoire pectorale -->
+  <path d="M185 260 Q205 275 195 285 Q180 278 178 265Z" fill="#0288d1" opacity="0.8"/>
+  <!-- Oeil -->
+  <circle cx="228" cy="248" r="10" fill="white"/>
+  <circle cx="228" cy="248" r="5" fill="#0a1628"/>
+  <circle cx="230" cy="246" r="2" fill="white"/>
+  <!-- Bouche -->
+  <path d="M240 255 Q248 262 244 266" stroke="#0a1628" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Écailles -->
+  <path d="M190 248 Q198 242 206 248" stroke="#0288d1" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <path d="M175 255 Q183 249 191 255" stroke="#0288d1" stroke-width="1.5" fill="none" opacity="0.5"/>
+
+  <!-- Éclaboussures eau -->
+  <path d="M130 300 Q145 285 160 295 Q150 308 130 310Z" fill="#29b6f6" opacity="0.4"/>
+  <path d="M200 305 Q215 290 225 300 Q215 313 200 312Z" fill="#29b6f6" opacity="0.3"/>
+
+  <!-- Texte FISHLOG -->
+  <text x="256" y="370" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="52" font-weight="900" fill="#f0f4ff" letter-spacing="2">FISH</text>
+  <text x="256" y="415" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="38" font-weight="900" fill="#29b6f6" letter-spacing="4">LOG</text>
+</svg>
