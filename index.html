@@ -284,7 +284,10 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
     <div class="header">
       <div class="header-top">
         <h1>Fish<span>Log</span></h1>
-        <div class="header-badge" id="maree-badge">⚓ Chargement...</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div class="header-badge" id="user-badge" onclick="localStorage.removeItem('fishlog_user');location.reload()" style="cursor:pointer">🎣 —</div>
+          <div class="header-badge" id="maree-badge">⚓ —</div>
+        </div>
       </div>
       <div class="header-sub" id="home-sub">Lorient · Journal de pêche collaboratif</div>
     </div>
@@ -458,6 +461,12 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
         <input class="form-input" id="espece" placeholder="ex: Bar, Daurade...">
       </div>
       <div class="form-group">
+        <label class="form-label">Qui a pêché ?</label>
+        <select class="form-select" id="sel-pecheur">
+          <option value="">Choisir un pêcheur...</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label">Photo (optionnel)</label>
         <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this)">
         <img id="photo-preview" class="photo-preview">
@@ -565,6 +574,27 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
 
 </div>
 
+<!-- LOGIN MODAL -->
+<div id="login-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0d2545;border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:28px 24px;width:100%;max-width:340px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:40px;margin-bottom:8px">🎣</div>
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#f0f4ff">FishLog</div>
+      <div style="font-size:13px;color:rgba(240,244,255,0.5);margin-top:4px">Identifie-toi pour continuer</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:11px;color:rgba(240,244,255,0.5);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:block">Ton prénom</label>
+      <input id="login-nom" class="form-input" placeholder="ex: Antoine" style="width:100%">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:11px;color:rgba(240,244,255,0.5);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:block">Email (optionnel)</label>
+      <input id="login-email" class="form-input" type="email" placeholder="ex: ton@email.com" style="width:100%">
+      <div style="font-size:11px;color:rgba(240,244,255,0.3);margin-top:4px">Requis uniquement pour l'accès admin</div>
+    </div>
+    <button class="btn btn-primary" onclick="loginUser()">Entrer dans FishLog</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -572,15 +602,18 @@ const SUPABASE_URL = 'https://fysyfyyppjakpatkqjyx.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5c3lmeXlwcGpha3BhdGtxanl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzODQ3MjcsImV4cCI6MjA4OTk2MDcyN30.ddejemoXMLd12EBinZMtBaogmY4jW3-FSrvLxJRPUoY';
 
 async function sb(endpoint, options = {}) {
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json',
+  };
+  if (options.method !== 'DELETE') {
+    headers['Prefer'] = options.prefer || 'return=representation';
+  }
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + endpoint, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': options.prefer || 'return=representation',
-      ...options.headers
-    },
-    ...options
+    headers: { ...headers, ...options.headers },
+    method: options.method || 'GET',
+    body: options.body
   });
   if (!res.ok) {
     const err = await res.text();
@@ -594,16 +627,59 @@ async function sb(endpoint, options = {}) {
 let currentGPS = { lat: null, lng: null };
 let spots = [];
 let sessions = [];
+let pecheurs = [];
 let chipState = {};
+let currentUser = JSON.parse(localStorage.getItem('fishlog_user') || 'null');
+let isAdmin = false;
 
 // INIT
 document.addEventListener('DOMContentLoaded', async () => {
+  checkUser();
   updateSessionDate();
   await loadSpots();
+  await loadPecheurs();
   await loadStats();
   await loadRecentSessions();
   updateMareeBadge();
 });
+
+function checkUser() {
+  if (!currentUser) {
+    showLoginModal();
+  } else {
+    isAdmin = currentUser.email === 'antoinejosse56@gmail.com';
+    updateAdminUI();
+  }
+}
+
+function showLoginModal() {
+  const modal = document.getElementById('login-modal');
+  modal.style.display = 'flex';
+}
+
+function hideLoginModal() {
+  document.getElementById('login-modal').style.display = 'none';
+}
+
+function loginUser() {
+  const nom = document.getElementById('login-nom').value.trim();
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  if (!nom) { showToast('Entre ton prénom', true); return; }
+  currentUser = { nom, email };
+  localStorage.setItem('fishlog_user', JSON.stringify(currentUser));
+  isAdmin = email === 'antoinejosse56@gmail.com';
+  hideLoginModal();
+  updateAdminUI();
+  showToast('Bienvenue ' + nom + ' 👋');
+}
+
+function updateAdminUI() {
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = isAdmin ? '' : 'none';
+  });
+  const badge = document.getElementById('user-badge');
+  if (badge) badge.textContent = (isAdmin ? '👑 ' : '🎣 ') + (currentUser?.nom || '');
+}
 
 function updateSessionDate() {
   const now = new Date();
@@ -630,6 +706,24 @@ async function loadSpots() {
       sel.appendChild(o);
     });
   } catch(e) { console.error('Spots:', e); }
+}
+
+async function loadPecheurs() {
+  try {
+    pecheurs = await sb('pecheurs?select=*&order=nom');
+    const sel = document.getElementById('sel-pecheur');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Choisir un pêcheur...</option>';
+    pecheurs.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.id; o.textContent = p.nom;
+      sel.appendChild(o);
+    });
+    if (currentUser) {
+      const match = pecheurs.find(p => p.nom.toLowerCase() === currentUser.nom.toLowerCase());
+      if (match) sel.value = match.id;
+    }
+  } catch(e) { console.error('Pecheurs:', e); }
 }
 
 async function loadStats() {
@@ -692,10 +786,18 @@ async function loadHistorique() {
       const date = new Date(s.created_at).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
       const spot = s.spots?.nom || '—';
       const prises = s.nb_prises || 0;
+      const pecheur = s.pecheur_nom || '';
+      const delBtn = isAdmin ? `<button onclick="deleteSession('${s.id}')" style="background:rgba(239,83,80,0.15);border:1px solid rgba(239,83,80,0.3);color:#ef5350;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">🗑</button>` : '';
       return `<div class="session-card">
         <div class="session-card-header">
-          <div><div class="session-spot">${spot}</div><div class="session-date">${date}</div></div>
-          <span class="badge ${s.succes ? 'badge-green' : 'badge-warm'}">${prises} prise${prises>1?'s':''}</span>
+          <div>
+            <div class="session-spot">${spot}</div>
+            <div class="session-date">${date}${pecheur ? ' · 🎣 ' + pecheur : ''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="badge ${s.succes ? 'badge-green' : 'badge-warm'}">${prises} prise${prises>1?'s':''}</span>
+            ${delBtn}
+          </div>
         </div>
         <div class="session-meta">
           ${s.ensoleillement ? `<span class="badge badge-blue">${s.ensoleillement}</span>` : ''}
@@ -773,9 +875,14 @@ async function saveSession() {
   const spotId = document.getElementById('sel-spot').value;
   if (!spotId) { showToast('Choisis un spot', true); return; }
 
+  const pecheurId = document.getElementById('sel-pecheur').value || null;
+  const pecheurNom = pecheurId ? (pecheurs.find(p => p.id === pecheurId)?.nom || null) : (currentUser?.nom || null);
+
   const session = {
     spot_id: spotId,
-    user_id: 'user1',
+    user_id: currentUser?.email || 'anonyme',
+    pecheur_id: pecheurId,
+    pecheur_nom: pecheurNom,
     vent_direction: document.getElementById('vent-dir').value || null,
     vent_force: parseInt(document.getElementById('vent-force').value) || null,
     temp_air: parseFloat(document.getElementById('temp-air').value) || null,
@@ -822,6 +929,19 @@ async function saveSession() {
     console.error(e);
     showToast('Erreur : ' + e.message, true);
   }
+}
+
+async function deleteSession(id) {
+  if (!confirm('Supprimer cette session ?')) return;
+  try {
+    await sb('leurres?session_id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' });
+    await sb('captures?session_id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' });
+    await sb('sessions?id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' });
+    showToast('Session supprimée');
+    await loadHistorique();
+    await loadStats();
+    await loadRecentSessions();
+  } catch(e) { showToast('Erreur suppression', true); console.error(e); }
 }
 
 function resetForm() {
