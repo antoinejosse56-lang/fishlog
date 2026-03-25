@@ -1,0 +1,16 @@
+{
+  "name": "FishLog",
+  "short_name": "FishLog",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0a1628",
+  "theme_color": "#0a1628",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
