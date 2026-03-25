@@ -1355,26 +1355,25 @@ function parseAndDisplayShom(text, card, code) {
     const nextPM = events.find(e => e.type==='PM' && e.time.getTime() > nowMs);
     const coef = nextPM?.coef || prev?.coef || '—';
 
-    card.innerHTML = \`
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="color:#29b6f6;font-size:13px;font-weight:600">\${arrow} \${moment}</div>
-        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#29b6f6">Coeff \${coef}</div>
-      </div>
-      \${next ? \`<div style="color:#f0f4ff;font-size:13px;font-weight:500">Prochaine \${next.type} à \${next.heureStr}</div>\` : ''}
-      \${next2 ? \`<div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:3px">Puis \${next2.type} à \${next2.heureStr}</div>\` : ''}
-    \`;
+    let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+    html += '<div style="color:#29b6f6;font-size:13px;font-weight:600">' + arrow + ' ' + moment + '</div>';
+    html += '<div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;color:#29b6f6">Coeff ' + coef + '</div>';
+    html += '</div>';
+    if (next) html += '<div style="color:#f0f4ff;font-size:13px;font-weight:500">Prochaine ' + next.type + ' \u00e0 ' + next.heureStr + '</div>';
+    if (next2) html += '<div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:3px">Puis ' + next2.type + ' \u00e0 ' + next2.heureStr + '</div>';
+    card.innerHTML = html;
 
-    // Mettre à jour le badge accueil si c'est le port sélectionné
-    if (code === (SHOM_CODES[PORTS.findIndex(p=>p.nom===selectedPort.nom)] || 'PORT-NAVALO')) {
-      document.getElementById('maree-badge').textContent = \`⚓ \${arrow} \${moment}\`;
+    const selectedIdx = PORTS.findIndex(p => p.nom === selectedPort.nom);
+    if (code === (SHOM_CODES[selectedIdx] || 'PORT-NAVALO')) {
+      document.getElementById('maree-badge').textContent = '\u26f3 ' + arrow + ' ' + moment;
       const detail = document.getElementById('maree-detail');
       if (detail) {
         detail.style.display = 'block';
         detail.onclick = () => showScreen('marees');
         document.getElementById('maree-port-label').textContent = selectedPort.nom;
         document.getElementById('maree-coef-badge').textContent = 'Coeff ' + coef;
-        document.getElementById('maree-next').textContent = next ? \`Prochaine \${next.type} à \${next.heureStr}\` : '';
-        document.getElementById('maree-suivante').textContent = next2 ? \`Puis \${next2.type} à \${next2.heureStr}\` : '';
+        document.getElementById('maree-next').textContent = next ? 'Prochaine ' + next.type + ' \u00e0 ' + next.heureStr : '';
+        document.getElementById('maree-suivante').textContent = next2 ? 'Puis ' + next2.type + ' \u00e0 ' + next2.heureStr : '';
       }
     }
   } catch(e) {
