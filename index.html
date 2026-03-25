@@ -578,8 +578,83 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
           <div class="chip" data-val="trouble" onclick="selectChip(this,'chips-r-turb')">🟤 Trouble</div>
         </div>
       </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Pression (hPa)</label>
+          <input class="form-input" type="number" id="r-pression" placeholder="ex: 1013">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tendance</label>
+          <div class="chips" id="chips-r-pression" style="margin-top:4px">
+            <div class="chip" data-val="hausse" onclick="selectChip(this,'chips-r-pression')">↑ Hausse</div>
+            <div class="chip" data-val="stable" onclick="selectChip(this,'chips-r-pression')">— Stable</div>
+            <div class="chip" data-val="baisse" onclick="selectChip(this,'chips-r-pression')">↓ Baisse</div>
+          </div>
+        </div>
+      </div>
       <button class="btn btn-primary" onclick="getReco()" style="margin-bottom:20px">🔍 Trouver les meilleurs spots</button>
       <div id="reco-results"></div>
+    </div>
+  </div>
+
+  <!-- MARÉES -->
+  <div class="screen" id="screen-marees">
+    <div class="header">
+      <div class="header-top">
+        <h1>⚓ <span>Marées</span></h1>
+      </div>
+      <div class="header-sub">Données officielles SHOM</div>
+    </div>
+    <div class="scroll">
+
+      <div class="section-title">Port-Navalo</div>
+      <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:8px;padding:8px">
+        <script src="https://services.data.shom.fr/hdm/vignette/petite/PORT-NAVALO?locale=fr"></script>
+      </div>
+      <a href="https://mareespeche.com/fr/bretagne-atlantique/port-navalo-morbihan-entr/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:8px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:10px;padding:10px 14px;margin-bottom:16px;text-decoration:none">
+        <span style="font-size:20px">🐟</span>
+        <div>
+          <div style="color:#29b6f6;font-size:13px;font-weight:600">Activité des poissons</div>
+          <div style="color:rgba(240,244,255,0.5);font-size:11px">Voir les prévisions 7 jours →</div>
+        </div>
+      </a>
+
+      <div class="section-title">Arradon</div>
+      <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:8px;padding:8px">
+        <script src="https://services.data.shom.fr/hdm/vignette/petite/ARRADON?locale=fr"></script>
+      </div>
+      <a href="https://mareespeche.com/fr/bretagne-atlantique/arradon/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:8px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:10px;padding:10px 14px;margin-bottom:16px;text-decoration:none">
+        <span style="font-size:20px">🐟</span>
+        <div>
+          <div style="color:#29b6f6;font-size:13px;font-weight:600">Activité des poissons</div>
+          <div style="color:rgba(240,244,255,0.5);font-size:11px">Voir les prévisions 7 jours →</div>
+        </div>
+      </a>
+
+      <div class="section-title">Le Palais</div>
+      <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:8px;padding:8px">
+        <script src="https://services.data.shom.fr/hdm/vignette/petite/LE_PALAIS?locale=fr"></script>
+      </div>
+      <a href="https://mareespeche.com/fr/bretagne-atlantique/le-palais-belle-ile/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:8px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:10px;padding:10px 14px;margin-bottom:16px;text-decoration:none">
+        <span style="font-size:20px">🐟</span>
+        <div>
+          <div style="color:#29b6f6;font-size:13px;font-weight:600">Activité des poissons</div>
+          <div style="color:rgba(240,244,255,0.5);font-size:11px">Voir les prévisions 7 jours →</div>
+        </div>
+      </a>
+
+      <div class="section-title">Houat</div>
+      <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:8px;padding:8px">
+        <script src="https://services.data.shom.fr/hdm/vignette/petite/HOUAT?locale=fr"></script>
+      </div>
+      <a href="https://mareespeche.com/fr/bretagne-atlantique/ile-de-houat/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:8px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:10px;padding:10px 14px;margin-bottom:16px;text-decoration:none">
+        <span style="font-size:20px">🐟</span>
+        <div>
+          <div style="color:#29b6f6;font-size:13px;font-weight:600">Activité des poissons</div>
+          <div style="color:rgba(240,244,255,0.5);font-size:11px">Voir les prévisions 7 jours →</div>
+        </div>
+      </a>
+
     </div>
   </div>
 
@@ -603,9 +678,9 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       Conseils
     </div>
-    <div class="nav-item" id="nav-spots" onclick="showScreen('home')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      Spots
+    <div class="nav-item" id="nav-marees" onclick="showScreen('marees')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12 Q6 8 10 12 Q14 16 18 12 Q20 10 22 12"/><path d="M2 17 Q6 13 10 17 Q14 21 18 17 Q20 15 22 17"/><path d="M2 7 Q6 3 10 7 Q14 11 18 7 Q20 5 22 7"/></svg>
+      Marées
     </div>
   </nav>
 
@@ -755,76 +830,13 @@ async function updateMareeBadge() {
   document.getElementById('home-sub').textContent = d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
   document.getElementById('maree-badge').textContent = '⚓ Chargement...';
 
-  try {
-    const { lat, lng } = selectedPort;
-    const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}&hourly=sea_level&daily=wave_height_max&timezone=Europe%2FParis&forecast_days=1`;
-    
-    // Utiliser l'API de hauteur de marée via WorldTides (gratuit limité)
-    // Fallback : calcul basé sur cycle lunaire simplifié
-    const now = new Date();
-    const nowMs = now.getTime();
-    
-    // Cycle de marée semi-diurne : ~12h25min = 44700 secondes
-    const TIDAL_PERIOD = 44700 * 1000;
-    // Référence : pleine mer à Port-Navalo le 25 mars 2026 à 06:30 UTC
-    const REF_HIGH_TIDE = new Date('2026-03-25T06:30:00Z').getTime();
-    
-    // Corrections par port (en minutes)
-    const corrections = {
-      'Port-Navalo': 0,
-      'Arradon': -5,
-      'Le Palais': -15,
-      'Houat': -10,
-    };
-    const corrMin = (corrections[selectedPort.nom] || 0) * 60 * 1000;
-    
-    // Phase dans le cycle : 0 = PM, 0.5 = BM
-    const phase = ((nowMs - REF_HIGH_TIDE - corrMin) % TIDAL_PERIOD + TIDAL_PERIOD) % TIDAL_PERIOD / TIDAL_PERIOD;
-    
-    // Coefficient basé sur cycle lunaire (29.5 jours)
-    const LUNAR_PERIOD = 29.5 * 24 * 3600 * 1000;
-    const REF_VIVE_EAU = new Date('2026-03-14T00:00:00Z').getTime(); // nouvelle lune
-    const lunarPhase = ((nowMs - REF_VIVE_EAU) % LUNAR_PERIOD + LUNAR_PERIOD) % LUNAR_PERIOD / LUNAR_PERIOD;
-    const coefBase = Math.round(45 + 70 * Math.abs(Math.cos(lunarPhase * 2 * Math.PI)));
-    const coef = Math.min(120, Math.max(20, coefBase));
-    
-    let moment, arrow;
-    if (phase < 0.25) { moment = 'Montante'; arrow = '↑'; }
-    else if (phase < 0.5) { moment = 'Descendante'; arrow = '↓'; }
-    else if (phase < 0.75) { moment = 'Montante'; arrow = '↑'; }
-    else { moment = 'Descendante'; arrow = '↓'; }
-    
-    // Étale autour de PM et BM (±15min)
-    const nearExtreme = phase < 0.02 || (phase > 0.48 && phase < 0.52) || phase > 0.98;
-    if (nearExtreme) { moment = 'Étale'; arrow = '—'; }
-    
-    // Calculer heure prochaine PM ou BM
-    let nextExtremeMs;
-    if (phase < 0.5) {
-      nextExtremeMs = REF_HIGH_TIDE + corrMin + Math.ceil((nowMs - REF_HIGH_TIDE - corrMin) / TIDAL_PERIOD * 2 + 0.5) * TIDAL_PERIOD / 2;
-    } else {
-      nextExtremeMs = REF_HIGH_TIDE + corrMin + Math.ceil((nowMs - REF_HIGH_TIDE - corrMin) / TIDAL_PERIOD * 2 + 0.5) * TIDAL_PERIOD / 2;
-    }
-    // Trouver la prochaine PM ou BM
-    let t = REF_HIGH_TIDE + corrMin;
-    while (t <= nowMs) t += TIDAL_PERIOD / 2;
-    const nextTime = new Date(t);
-    const nextHour = nextTime.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-    const nextPhase = ((t - REF_HIGH_TIDE - corrMin) % TIDAL_PERIOD + TIDAL_PERIOD) % TIDAL_PERIOD / TIDAL_PERIOD;
-    const nextIsPM = nextPhase < 0.1 || nextPhase > 0.9;
-    const nextLabel = nextIsPM ? 'PM' : 'BM';
-    
-    document.getElementById('maree-badge').textContent = `⚓ ${arrow} ${moment} · ${coef}`;
-    document.getElementById('next-tide-info').textContent = `Prochaine ${nextLabel} à ${nextHour}`;
-    document.getElementById('next-tide-info').style.display = 'block';
-    
-    // Pré-remplir coefficient dans le formulaire session
-    const coefInput = document.getElementById('coef-maree');
-    if (coefInput && !coefInput.value) coefInput.value = coef;
-    
-  } catch(e) {
-    fallbackMareeBadge();
-  }
+  // Badge simplifié - données exactes disponibles dans l'onglet Marées (SHOM)
+  const d2 = new Date();
+  document.getElementById('maree-badge').textContent = '⚓ Voir Marées';
+  document.getElementById('next-tide-info').textContent = 'Données SHOM officielles → onglet Marées';
+  document.getElementById('next-tide-info').style.display = 'block';
+  document.getElementById('maree-badge').style.cursor = 'pointer';
+  document.getElementById('maree-badge').onclick = () => showScreen('marees');
 }
 
 function fallbackMareeBadge() {
@@ -1105,6 +1117,8 @@ async function getReco() {
   const moment = document.getElementById('r-moment').value || null;
   const soleil = getChip('chips-r-soleil');
   const turb = getChip('chips-r-turb');
+  const pression = parseInt(document.getElementById('r-pression').value) || null;
+  const pressionTendance = getChip('chips-r-pression');
 
   document.getElementById('reco-results').innerHTML = '<div class="loader"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>';
 
@@ -1125,6 +1139,19 @@ async function getReco() {
       if (moment && s.moment_maree === moment) score += 25;
       if (soleil && s.ensoleillement === soleil) score += 20;
       if (turb && s.turbidite === turb) score += 20;
+      // Pression atmosphérique - paramètre clé
+      if (pression && s.pression) {
+        const diffP = Math.abs(pression - s.pression);
+        if (diffP <= 3) score += 25;
+        else if (diffP <= 8) score += 15;
+        else if (diffP <= 15) score += 8;
+      }
+      // Tendance pression (hausse = poisson actif, baisse = moins bon)
+      if (pressionTendance) {
+        if (pressionTendance === 'hausse' && s.succes) score += 15;
+        else if (pressionTendance === 'stable' && s.succes) score += 8;
+        else if (pressionTendance === 'baisse') score -= 5;
+      }
       score += (s.nb_prises || 0) * 5;
 
       const spotId = s.spot_id;
