@@ -612,23 +612,54 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
         <h1>⚓ <span>Marées</span></h1>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px" id="port-chips">
-        <div class="chip selected" data-shom="PORT-NAVALO" data-peche="port-navalo-morbihan-entr" onclick="selectPort(this)">Port-Navalo</div>
-        <div class="chip" data-shom="ARRADON" data-peche="arradon" onclick="selectPort(this)">Arradon</div>
-        <div class="chip" data-shom="LE_PALAIS" data-peche="le-palais-belle-ile" onclick="selectPort(this)">Le Palais</div>
-        <div class="chip" data-shom="HOUAT" data-peche="ile-de-houat" onclick="selectPort(this)">Houat</div>
+        <div class="chip selected" data-port="0" onclick="selectPort(this)">Port-Navalo</div>
+        <div class="chip" data-port="1" onclick="selectPort(this)">Arradon</div>
+        <div class="chip" data-port="2" onclick="selectPort(this)">Le Palais</div>
+        <div class="chip" data-port="3" onclick="selectPort(this)">Houat</div>
       </div>
     </div>
     <div class="scroll">
-      <div id="shom-widget-container" style="background:white;border-radius:12px;overflow:hidden;margin-bottom:12px;padding:8px;min-height:160px">
-        <div id="shom-widget-inner"></div>
-      </div>
-      <a id="peche-link" href="https://mareespeche.com/fr/bretagne-atlantique/port-navalo-morbihan-entr/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:12px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:12px;padding:14px 16px;text-decoration:none">
-        <span style="font-size:28px">🐟</span>
-        <div>
-          <div style="color:#29b6f6;font-size:14px;font-weight:700">Activité des poissons</div>
-          <div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:2px">Prévisions 7 jours sur mareespeche.com →</div>
+
+      <div class="port-panel" id="panel-0">
+        <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:10px;padding:8px">
+          <script src="https://services.data.shom.fr/hdm/vignette/petite/PORT-NAVALO?locale=fr"></script>
         </div>
-      </a>
+        <a href="https://mareespeche.com/fr/bretagne-atlantique/port-navalo-morbihan-entr/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:12px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:12px;padding:14px 16px;text-decoration:none">
+          <span style="font-size:26px">🐟</span>
+          <div><div style="color:#29b6f6;font-size:14px;font-weight:700">Activité des poissons</div><div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:2px">Prévisions 7 jours →</div></div>
+        </a>
+      </div>
+
+      <div class="port-panel" id="panel-1" style="display:none">
+        <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:10px;padding:8px">
+          <script src="https://services.data.shom.fr/hdm/vignette/petite/ARRADON?locale=fr"></script>
+        </div>
+        <a href="https://mareespeche.com/fr/bretagne-atlantique/arradon/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:12px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:12px;padding:14px 16px;text-decoration:none">
+          <span style="font-size:26px">🐟</span>
+          <div><div style="color:#29b6f6;font-size:14px;font-weight:700">Activité des poissons</div><div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:2px">Prévisions 7 jours →</div></div>
+        </a>
+      </div>
+
+      <div class="port-panel" id="panel-2" style="display:none">
+        <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:10px;padding:8px">
+          <script src="https://services.data.shom.fr/hdm/vignette/petite/LE_PALAIS?locale=fr"></script>
+        </div>
+        <a href="https://mareespeche.com/fr/bretagne-atlantique/le-palais-belle-ile/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:12px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:12px;padding:14px 16px;text-decoration:none">
+          <span style="font-size:26px">🐟</span>
+          <div><div style="color:#29b6f6;font-size:14px;font-weight:700">Activité des poissons</div><div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:2px">Prévisions 7 jours →</div></div>
+        </a>
+      </div>
+
+      <div class="port-panel" id="panel-3" style="display:none">
+        <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:10px;padding:8px">
+          <script src="https://services.data.shom.fr/hdm/vignette/petite/HOUAT?locale=fr"></script>
+        </div>
+        <a href="https://mareespeche.com/fr/bretagne-atlantique/ile-de-houat/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:12px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:12px;padding:14px 16px;text-decoration:none">
+          <span style="font-size:26px">🐟</span>
+          <div><div style="color:#29b6f6;font-size:14px;font-weight:700">Activité des poissons</div><div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:2px">Prévisions 7 jours →</div></div>
+        </a>
+      </div>
+
     </div>
   </div>
 
@@ -810,90 +841,29 @@ async function updateMareeBadge() {
   document.getElementById('maree-badge').style.cursor = 'pointer';
   document.getElementById('maree-badge').onclick = () => showScreen('marees');
 
-  try {
-    const shomCodes = {
-      'Port-Navalo': 'PORT-NAVALO',
-      'Arradon': 'ARRADON',
-      'Le Palais': 'LE_PALAIS',
-      'Houat': 'HOUAT'
-    };
-    const code = shomCodes[selectedPort.nom] || 'PORT-NAVALO';
-    const res = await fetch(`https://services.data.shom.fr/hdm/vignette/petite/${code}?locale=fr`);
-    const text = await res.text();
-
-    // Parser les données PM/BM depuis le script SHOM
-    const now = new Date();
-    const todayStr = now.toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'/');
-    const events = [];
-    
-    // Extraire toutes les lignes PM/BM avec heure et coeff
-    const pmBmRegex = /(?:PM|BM).*?(\d{2}:\d{2}).*?[\d.]+.*?(\d+|---)/gs;
-    const lines = text.split("ifrm.document.write('");
-    let currentType = null;
-    
-    lines.forEach(line => {
-      const cleanLine = line.replace(/\'/g,"'").replace(/<[^>]+>/g,'').trim();
-      if (cleanLine.includes("' PM'") || cleanLine === " PM') ") currentType = 'PM';
-      if (cleanLine.includes("' BM'") || cleanLine === " BM') ") currentType = 'BM';
-      
-      const heureMatch = cleanLine.match(/^\s*(\d{2}:\d{2})\s*\|?\s*$/);
-      if (heureMatch && currentType) {
-        const [h, m] = heureMatch[1].split(':').map(Number);
-        const t = new Date(now);
-        t.setHours(h, m, 0, 0);
-        events.push({ type: currentType, time: t, heureStr: heureMatch[1], coef: null });
-        currentType = null;
-      }
-    });
-
-    // Extraire coefficients séparément
-    const coefMatches = [...text.matchAll(/' (\d+) \|'/g)];
-    let coefIdx = 0;
-    events.forEach(e => {
-      if (e.type === 'PM' && coefMatches[coefIdx]) {
-        e.coef = coefMatches[coefIdx][1];
-        coefIdx++;
-      }
-    });
-
-    // Trouver événement précédent et suivant
-    const nowMs = now.getTime();
-    let prev = null, next = null, next2 = null;
-    for (const e of events) {
-      if (e.time.getTime() <= nowMs) prev = e;
-      else if (!next) next = e;
-      else if (!next2) next2 = e;
-    }
-
-    // Déterminer si montante ou descendante
-    let moment = '—', arrow = '—';
-    if (prev && next) {
-      const isMontante = prev.type === 'BM';
-      moment = isMontante ? 'Montante' : 'Descendante';
-      arrow = isMontante ? '↑' : '↓';
-    }
-
-    // Coeff actuel (prochain PM)
-    const nextPM = events.find(e => e.type === 'PM' && e.time.getTime() > nowMs);
-    const coefDisplay = nextPM?.coef || prev?.coef || '—';
-
-    // Afficher badge
-    document.getElementById('maree-badge').textContent = `⚓ ${arrow} ${moment}`;
-
-    // Afficher détail dans la card
-    if (next) {
-      const detail = document.getElementById('maree-detail');
-      detail.style.display = 'block';
-      document.getElementById('maree-port-label').textContent = selectedPort.nom;
-      document.getElementById('maree-coef-badge').textContent = `Coeff ${coefDisplay}`;
-      document.getElementById('maree-next').textContent = `Prochaine ${next.type} à ${next.heureStr}`;
-      document.getElementById('maree-suivante').textContent = next2 ? `Puis ${next2.type} à ${next2.heureStr}` : '';
-    }
-    document.getElementById('next-tide-info').style.display = 'none';
-
-  } catch(e) {
-    document.getElementById('maree-badge').textContent = '⚓ Marées';
-    console.error('SHOM error:', e);
+  // Données marée : lien direct vers maree.shom.fr par port
+  const shomPortMap = {
+    'Port-Navalo': 'PORT-NAVALO',
+    'Arradon': 'ARRADON',
+    'Le Palais': 'LE_PALAIS',
+    'Houat': 'HOUAT'
+  };
+  const shomCode = shomPortMap[selectedPort.nom] || 'PORT-NAVALO';
+  
+  document.getElementById('maree-badge').textContent = '⚓ Marées';
+  document.getElementById('maree-badge').style.cursor = 'pointer';
+  document.getElementById('maree-badge').onclick = () => showScreen('marees');
+  
+  // Afficher la card avec lien vers l'onglet marées
+  const detail = document.getElementById('maree-detail');
+  if (detail) {
+    detail.style.display = 'block';
+    detail.style.cursor = 'pointer';
+    detail.onclick = () => showScreen('marees');
+    document.getElementById('maree-port-label').textContent = selectedPort.nom;
+    document.getElementById('maree-coef-badge').textContent = '⚓ Voir';
+    document.getElementById('maree-next').textContent = 'Marées et coefficients officiels';
+    document.getElementById('maree-suivante').textContent = 'Appuie pour ouvrir l'onglet marées →';
   }
 }
 
@@ -1284,22 +1254,13 @@ function showScreen(name) {
 function selectPort(el) {
   document.querySelectorAll('#port-chips .chip').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  const shomCode = el.dataset.shom;
-  const pecheSlug = el.dataset.peche;
-  loadShomWidget(shomCode, pecheSlug);
+  const portIdx = el.dataset.port;
+  document.querySelectorAll('.port-panel').forEach(p => p.style.display = 'none');
+  const panel = document.getElementById('panel-' + portIdx);
+  if (panel) panel.style.display = 'block';
 }
 
-function loadShomWidget(shomCode, pecheSlug) {
-  const inner = document.getElementById('shom-widget-inner');
-  // Recharger le script SHOM en recréant le div
-  inner.innerHTML = '';
-  const script = document.createElement('script');
-  script.src = `https://services.data.shom.fr/hdm/vignette/petite/${shomCode}?locale=fr`;
-  inner.appendChild(script);
-  // Mettre à jour le lien activité poisson
-  const link = document.getElementById('peche-link');
-  link.href = `https://mareespeche.com/fr/bretagne-atlantique/${pecheSlug}/previsions/peche`;
-}
+function loadShomWidget() {}
 
 // Initialiser la vignette SHOM quand on arrive sur l'écran marées
 const origShowScreen = showScreen;
