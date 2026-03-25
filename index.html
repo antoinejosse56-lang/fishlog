@@ -343,9 +343,38 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
       </div>
       <div class="form-group">
         <label class="form-label">GPS</label>
-        <button type="button" class="gps-btn" onclick="getGPS()">
+        <button type="button" class="gps-btn" onclick="getGPS()" style="margin-bottom:8px">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
           <span id="gps-text">Capturer ma position</span>
+        </button>
+        <div style="font-size:11px;color:rgba(240,244,255,0.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Ou saisir manuellement (format Navionics)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+          <div>
+            <div style="font-size:10px;color:rgba(240,244,255,0.4);margin-bottom:3px">Lat. N (ex: 47°33'00")</div>
+            <div style="display:flex;gap:4px">
+              <input class="form-input" type="number" id="lat-deg" placeholder="47" style="width:48px;padding:8px 6px;text-align:center" min="0" max="90">
+              <span style="color:rgba(240,244,255,0.4);align-self:center">°</span>
+              <input class="form-input" type="number" id="lat-min" placeholder="33" style="width:48px;padding:8px 6px;text-align:center" min="0" max="59">
+              <span style="color:rgba(240,244,255,0.4);align-self:center">'</span>
+              <input class="form-input" type="number" id="lat-sec" placeholder="00" style="width:48px;padding:8px 6px;text-align:center" min="0" max="59">
+              <span style="color:rgba(240,244,255,0.4);align-self:center">"</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:rgba(240,244,255,0.4);margin-bottom:3px">Long. W (ex: 2°55'00")</div>
+            <div style="display:flex;gap:4px">
+              <input class="form-input" type="number" id="lng-deg" placeholder="2" style="width:48px;padding:8px 6px;text-align:center" min="0" max="180">
+              <span style="color:rgba(240,244,255,0.4);align-self:center">°</span>
+              <input class="form-input" type="number" id="lng-min" placeholder="55" style="width:48px;padding:8px 6px;text-align:center" min="0" max="59">
+              <span style="color:rgba(240,244,255,0.4);align-self:center">'</span>
+              <input class="form-input" type="number" id="lng-sec" placeholder="00" style="width:48px;padding:8px 6px;text-align:center" min="0" max="59">
+              <span style="color:rgba(240,244,255,0.4);align-self:center">"</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="gps-btn" onclick="convertDMS()" style="padding:8px 14px">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Valider les coordonnées
         </button>
         <input type="hidden" id="gps-lat"><input type="hidden" id="gps-lng">
       </div>
@@ -622,9 +651,38 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
           <button type="button" class="btn btn-ghost" style="width:auto;padding:0 14px;font-size:12px" onclick="addSpotFromScreen()">+ Ajouter</button>
         </div>
       </div>
-      <button type="button" class="gps-btn" onclick="getGPSForSpot()" style="margin-bottom:14px">
+      <button type="button" class="gps-btn" onclick="getGPSForSpot()" style="margin-bottom:8px">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
         <span id="gps-spot-text">Capturer ma position</span>
+      </button>
+      <div style="font-size:11px;color:rgba(240,244,255,0.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Ou format Navionics (deg min sec)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        <div>
+          <div style="font-size:10px;color:rgba(240,244,255,0.4);margin-bottom:3px">Lat. N</div>
+          <div style="display:flex;gap:4px">
+            <input class="form-input" type="number" id="spot-lat-deg" placeholder="47" style="width:48px;padding:8px 6px;text-align:center" min="0" max="90">
+            <span style="color:rgba(240,244,255,0.4);align-self:center">°</span>
+            <input class="form-input" type="number" id="spot-lat-min" placeholder="33" style="width:48px;padding:8px 6px;text-align:center" min="0" max="59">
+            <span style="color:rgba(240,244,255,0.4);align-self:center">'</span>
+            <input class="form-input" type="number" id="spot-lat-sec" placeholder="00" style="width:48px;padding:8px 6px;text-align:center" min="0" max="59">
+            <span style="color:rgba(240,244,255,0.4);align-self:center">"</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:rgba(240,244,255,0.4);margin-bottom:3px">Long. W</div>
+          <div style="display:flex;gap:4px">
+            <input class="form-input" type="number" id="spot-lng-deg" placeholder="2" style="width:48px;padding:8px 6px;text-align:center" min="0" max="180">
+            <span style="color:rgba(240,244,255,0.4);align-self:center">°</span>
+            <input class="form-input" type="number" id="spot-lng-min" placeholder="55" style="width:48px;padding:8px 6px;text-align:center" min="0" max="59">
+            <span style="color:rgba(240,244,255,0.4);align-self:center">'</span>
+            <input class="form-input" type="number" id="spot-lng-sec" placeholder="00" style="width:48px;padding:8px 6px;text-align:center" min="0" max="59">
+            <span style="color:rgba(240,244,255,0.4);align-self:center">"</span>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="gps-btn" onclick="convertDMSSpot()" style="padding:8px 14px;margin-bottom:14px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Valider les coordonnées
       </button>
       <div class="section-title">Mes spots</div>
       <div id="spots-list"><div class="loader"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div></div>
@@ -1411,8 +1469,20 @@ async function addSpotFromScreen() {
   } catch(e) { showToast('Erreur ajout spot', true); }
 }
 
-function copyGPS(lat, lng, nom) {
-  const txt = lat.toFixed(6) + ', ' + lng.toFixed(6);
+function decimalToDMS(dec, isLng) {
+  const d = Math.abs(dec);
+  const deg = Math.floor(d);
+  const minFull = (d - deg) * 60;
+  const min = Math.floor(minFull);
+  const sec = Math.round((minFull - min) * 60);
+  const dir = isLng ? (dec < 0 ? 'W' : 'E') : (dec < 0 ? 'S' : 'N');
+  return deg + '°' + min + "'" + sec + '" ' + dir;
+}
+
+function copyGPS(lat, lng) {
+  const dms = decimalToDMS(lat, false) + ' ' + decimalToDMS(lng, true);
+  const dec = lat.toFixed(6) + ', ' + lng.toFixed(6);
+  const txt = dms + ' (' + dec + ')';
   if (navigator.clipboard) {
     navigator.clipboard.writeText(txt).then(function() {
       showToast('GPS copié : ' + txt);
