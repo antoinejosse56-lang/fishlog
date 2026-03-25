@@ -1,13 +1,13 @@
 {
   "name": "FishLog",
   "short_name": "FishLog",
-  "start_url": ".",
+  "start_url": "https://antoinejosse56-lang.github.io/fishlog/",
   "display": "standalone",
   "background_color": "#0a1628",
   "theme_color": "#0a1628",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "https://antoinejosse56-lang.github.io/fishlog/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
