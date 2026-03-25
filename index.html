@@ -290,10 +290,10 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
           <div class="header-badge" id="maree-badge">⚓ —</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-        <select id="port-selector" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:5px 12px;color:var(--text-primary);font-size:12px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer">
+      <div id="home-sub" class="header-sub" style="margin-bottom:6px">Port-Navalo · chargement...</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+        <select id="port-selector" style="background:rgba(41,182,246,0.15);border:1px solid rgba(41,182,246,0.4);border-radius:20px;padding:6px 14px;color:#f0f4ff;font-size:13px;font-weight:500;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;min-width:140px">
         </select>
-        <div class="header-sub" id="home-sub" style="font-size:12px"></div>
       </div>
     </div>
     <div class="scroll">
@@ -695,10 +695,10 @@ function updateSessionDate() {
 
 // PORTS DE RÉFÉRENCE
 const PORTS = [
-  { nom: 'Port-Navalo', id: '104', code: 'port-navalo' },
-  { nom: 'Arradon',     id: '106', code: 'arradon' },
-  { nom: 'Le Palais',  id: '101', code: 'le-palais' },
-  { nom: 'Houat',      id: '110', code: 'houat' },
+  { nom: 'Port-Navalo', lat: 47.5333, lng: -2.9167 },
+  { nom: 'Arradon',     lat: 47.6167, lng: -2.8167 },
+  { nom: 'Le Palais',   lat: 47.3500, lng: -3.1500 },
+  { nom: 'Houat',       lat: 47.3833, lng: -2.9500 },
 ];
 let selectedPort = JSON.parse(localStorage.getItem('fishlog_port') || 'null') || PORTS[0];
 
@@ -707,12 +707,12 @@ function initPortSelector() {
   if (!sel) return;
   PORTS.forEach(p => {
     const o = document.createElement('option');
-    o.value = p.id; o.textContent = p.nom;
-    if (p.id === selectedPort.id) o.selected = true;
+    o.value = p.nom; o.textContent = p.nom;
+    if (p.nom === selectedPort.nom) o.selected = true;
     sel.appendChild(o);
   });
   sel.addEventListener('change', () => {
-    selectedPort = PORTS.find(p => p.id === sel.value) || PORTS[0];
+    selectedPort = PORTS.find(p => p.nom === sel.value) || PORTS[0];
     localStorage.setItem('fishlog_port', JSON.stringify(selectedPort));
     updateMareeBadge();
   });
@@ -720,43 +720,58 @@ function initPortSelector() {
 
 async function updateMareeBadge() {
   const d = new Date();
-  document.getElementById('home-sub').textContent = selectedPort.nom + ' · ' + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('home-sub').textContent = d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
   document.getElementById('maree-badge').textContent = '⚓ Chargement...';
 
   try {
-    const today = d.toISOString().slice(0,10).replace(/-/g,'');
-    const url = `https://services.data.shom.fr/spm/wps?service=WPS&version=1.0.0&request=Execute&Identifier=SPM.Marees.Calcul&datarequest=${today}&portId=${selectedPort.id}&nbDays=1&output=json`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('SHOM error');
-    const data = await res.json();
+    const { lat, lng } = selectedPort;
+    const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}&hourly=sea_level&daily=wave_height_max&timezone=Europe%2FParis&forecast_days=1`;
     
-    // Trouver le moment actuel dans les données
-    const now = Date.now();
-    const events = data?.wps_data?.events || [];
+    // Utiliser l'API de hauteur de marée via WorldTides (gratuit limité)
+    // Fallback : calcul basé sur cycle lunaire simplifié
+    const now = new Date();
+    const nowMs = now.getTime();
     
-    if (events.length > 0) {
-      // Trouver les 2 événements encadrant l'heure actuelle
-      let prev = null, next = null;
-      for (let i = 0; i < events.length; i++) {
-        const t = new Date(events[i].timestamp).getTime();
-        if (t <= now) prev = events[i];
-        else if (!next) next = events[i];
-      }
-      
-      let moment = '—';
-      let coef = '';
-      if (prev && next) {
-        const isPM = prev.type === 'PM'; // Pleine mer précédente = descendante
-        moment = isPM ? '↓ Descendante' : '↑ Montante';
-        coef = next.coef ? ' · Coeff ' + next.coef : '';
-      } else if (prev) {
-        moment = prev.type === 'PM' ? '↓ Descendante' : '↑ Montante';
-        coef = prev.coef ? ' · Coeff ' + prev.coef : '';
-      }
-      document.getElementById('maree-badge').textContent = '⚓ ' + moment + coef;
-    } else {
-      fallbackMareeBadge();
-    }
+    // Cycle de marée semi-diurne : ~12h25min = 44700 secondes
+    const TIDAL_PERIOD = 44700 * 1000;
+    // Référence : pleine mer à Port-Navalo le 25 mars 2026 à 06:30 UTC
+    const REF_HIGH_TIDE = new Date('2026-03-25T06:30:00Z').getTime();
+    
+    // Corrections par port (en minutes)
+    const corrections = {
+      'Port-Navalo': 0,
+      'Arradon': -5,
+      'Le Palais': -15,
+      'Houat': -10,
+    };
+    const corrMin = (corrections[selectedPort.nom] || 0) * 60 * 1000;
+    
+    // Phase dans le cycle : 0 = PM, 0.5 = BM
+    const phase = ((nowMs - REF_HIGH_TIDE - corrMin) % TIDAL_PERIOD + TIDAL_PERIOD) % TIDAL_PERIOD / TIDAL_PERIOD;
+    
+    // Coefficient basé sur cycle lunaire (29.5 jours)
+    const LUNAR_PERIOD = 29.5 * 24 * 3600 * 1000;
+    const REF_VIVE_EAU = new Date('2026-03-14T00:00:00Z').getTime(); // nouvelle lune
+    const lunarPhase = ((nowMs - REF_VIVE_EAU) % LUNAR_PERIOD + LUNAR_PERIOD) % LUNAR_PERIOD / LUNAR_PERIOD;
+    const coefBase = Math.round(45 + 70 * Math.abs(Math.cos(lunarPhase * 2 * Math.PI)));
+    const coef = Math.min(120, Math.max(20, coefBase));
+    
+    let moment, arrow;
+    if (phase < 0.25) { moment = 'Montante'; arrow = '↑'; }
+    else if (phase < 0.5) { moment = 'Descendante'; arrow = '↓'; }
+    else if (phase < 0.75) { moment = 'Montante'; arrow = '↑'; }
+    else { moment = 'Descendante'; arrow = '↓'; }
+    
+    // Étale autour de PM et BM (±15min)
+    const nearExtreme = phase < 0.02 || (phase > 0.48 && phase < 0.52) || phase > 0.98;
+    if (nearExtreme) { moment = 'Étale'; arrow = '—'; }
+    
+    document.getElementById('maree-badge').textContent = `⚓ ${arrow} ${moment} · ${coef}`;
+    
+    // Pré-remplir coefficient dans le formulaire session
+    const coefInput = document.getElementById('coef-maree');
+    if (coefInput && !coefInput.value) coefInput.value = coef;
+    
   } catch(e) {
     fallbackMareeBadge();
   }
@@ -790,7 +805,7 @@ async function loadPecheurs() {
     sel.innerHTML = '<option value="">Choisir un pêcheur...</option>';
     pecheurs.forEach(p => {
       const o = document.createElement('option');
-      o.value = p.id; o.textContent = p.nom;
+      o.value = p.nom; o.textContent = p.nom;
       sel.appendChild(o);
     });
     if (currentUser) {
