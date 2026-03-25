@@ -623,7 +623,11 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
 
       <div class="port-panel" id="panel-0">
         <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:10px;padding:8px">
-          <iframe src="https://maree.shom.fr/harbor/PORT-NAVALO" style="width:100%;height:220px;border:none" loading="lazy"></iframe>
+          <div id="shom-data-0" style="background:rgba(41,182,246,0.08);border:1px solid rgba(41,182,246,0.2);border-radius:12px;padding:12px 16px;margin-bottom:8px;min-height:60px"></div>
+        <a href="https://maree.shom.fr/harbor/PORT-NAVALO" target="_blank"
+          style="display:flex;align-items:center;gap:8px;padding:6px 0 8px;text-decoration:none">
+          <div style="color:rgba(240,244,255,0.4);font-size:11px">Détails complets sur maree.shom.fr →</div>
+        </a>
         </div>
         <a href="https://mareespeche.com/fr/bretagne-atlantique/port-navalo-morbihan-entr/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:12px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:12px;padding:14px 16px;text-decoration:none">
           <span style="font-size:26px">🐟</span>
@@ -633,7 +637,11 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
 
       <div class="port-panel" id="panel-1" style="display:none">
         <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:10px;padding:8px">
-          <iframe src="https://maree.shom.fr/harbor/ARRADON" style="width:100%;height:220px;border:none" loading="lazy"></iframe>
+          <div id="shom-data-1" style="background:rgba(41,182,246,0.08);border:1px solid rgba(41,182,246,0.2);border-radius:12px;padding:12px 16px;margin-bottom:8px;min-height:60px"></div>
+        <a href="https://maree.shom.fr/harbor/ARRADON" target="_blank"
+          style="display:flex;align-items:center;gap:8px;padding:6px 0 8px;text-decoration:none">
+          <div style="color:rgba(240,244,255,0.4);font-size:11px">Détails complets sur maree.shom.fr →</div>
+        </a>
         </div>
         <a href="https://mareespeche.com/fr/bretagne-atlantique/arradon/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:12px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:12px;padding:14px 16px;text-decoration:none">
           <span style="font-size:26px">🐟</span>
@@ -643,7 +651,11 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
 
       <div class="port-panel" id="panel-2" style="display:none">
         <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:10px;padding:8px">
-          <iframe src="https://maree.shom.fr/harbor/LE_PALAIS" style="width:100%;height:220px;border:none" loading="lazy"></iframe>
+          <div id="shom-data-2" style="background:rgba(41,182,246,0.08);border:1px solid rgba(41,182,246,0.2);border-radius:12px;padding:12px 16px;margin-bottom:8px;min-height:60px"></div>
+        <a href="https://maree.shom.fr/harbor/LE_PALAIS" target="_blank"
+          style="display:flex;align-items:center;gap:8px;padding:6px 0 8px;text-decoration:none">
+          <div style="color:rgba(240,244,255,0.4);font-size:11px">Détails complets sur maree.shom.fr →</div>
+        </a>
         </div>
         <a href="https://mareespeche.com/fr/bretagne-atlantique/le-palais-belle-ile/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:12px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:12px;padding:14px 16px;text-decoration:none">
           <span style="font-size:26px">🐟</span>
@@ -653,7 +665,11 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
 
       <div class="port-panel" id="panel-3" style="display:none">
         <div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:10px;padding:8px">
-          <iframe src="https://maree.shom.fr/harbor/HOUAT" style="width:100%;height:220px;border:none" loading="lazy"></iframe>
+          <div id="shom-data-3" style="background:rgba(41,182,246,0.08);border:1px solid rgba(41,182,246,0.2);border-radius:12px;padding:12px 16px;margin-bottom:8px;min-height:60px"></div>
+        <a href="https://maree.shom.fr/harbor/HOUAT" target="_blank"
+          style="display:flex;align-items:center;gap:8px;padding:6px 0 8px;text-decoration:none">
+          <div style="color:rgba(240,244,255,0.4);font-size:11px">Détails complets sur maree.shom.fr →</div>
+        </a>
         </div>
         <a href="https://mareespeche.com/fr/bretagne-atlantique/ile-de-houat/previsions/peche" target="_blank" style="display:flex;align-items:center;gap:12px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.25);border-radius:12px;padding:14px 16px;text-decoration:none">
           <span style="font-size:26px">🐟</span>
@@ -1252,16 +1268,119 @@ function showScreen(name) {
 }
 
 // PORT SELECTOR MARÉES
+const SHOM_CODES = ['PORT-NAVALO','ARRADON','LE_PALAIS','HOUAT'];
+const SHOM_NAMES = ['Port-Navalo','Arradon','Le Palais','Houat'];
+
 function selectPort(el) {
   document.querySelectorAll('#port-chips .chip').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  const portIdx = el.dataset.port;
+  const portIdx = parseInt(el.dataset.port);
   document.querySelectorAll('.port-panel').forEach(p => p.style.display = 'none');
   const panel = document.getElementById('panel-' + portIdx);
-  if (panel) panel.style.display = 'block';
+  if (panel) {
+    panel.style.display = 'block';
+    if (!panel.dataset.loaded) {
+      fetchShomData(SHOM_CODES[portIdx], portIdx);
+      panel.dataset.loaded = '1';
+    }
+  }
 }
 
-function loadShomWidget() {}
+function loadShomWidget() {
+  fetchShomData('PORT-NAVALO', 0);
+  document.querySelector('[data-port="0"]') && (document.getElementById('panel-0').dataset.loaded = '1');
+}
+
+async function fetchShomData(code, idx) {
+  const card = document.getElementById('shom-data-' + idx);
+  if (!card) return;
+  card.innerHTML = '<div style="color:rgba(240,244,255,0.4);font-size:12px;padding:8px">Chargement...</div>';
+  try {
+    // Utiliser allorigins pour contourner CORS
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://services.data.shom.fr/hdm/vignette/petite/' + code + '?locale=fr');
+    const res = await fetch(proxyUrl);
+    const json = await res.json();
+    const text = json.contents;
+    parseAndDisplayShom(text, card, code);
+  } catch(e) {
+    card.innerHTML = '<div style="color:rgba(240,244,255,0.4);font-size:12px;padding:8px">Données indisponibles</div>';
+  }
+}
+
+function parseAndDisplayShom(text, card, code) {
+  try {
+    const now = new Date();
+    const events = [];
+    const lines = text.split("ifrm.document.write('");
+    let lastType = null;
+
+    for (const line of lines) {
+      const clean = line.replace(/<[^>]+>/g,'').replace(/\'/g,"'").trim();
+      if (clean.startsWith(" PM'") || clean === " PM') ") lastType = 'PM';
+      else if (clean.startsWith(" BM'") || clean === " BM') ") lastType = 'BM';
+      const hm = clean.match(/^\s*(\d{2}:\d{2})\s*\|?\s*$/);
+      if (!hm) {
+        const hm2 = clean.match(/^(\d{2}:\d{2}) \|$/);
+        if (hm2 && lastType) {
+          const [h,m] = hm2[1].split(':').map(Number);
+          const t = new Date(now); t.setHours(h,m,0,0);
+          events.push({type:lastType, heureStr:hm2[1], time:t});
+          lastType = null;
+        }
+      } else if (lastType) {
+        const [h,m] = hm[1].split(':').map(Number);
+        const t = new Date(now); t.setHours(h,m,0,0);
+        events.push({type:lastType, heureStr:hm[1], time:t});
+        lastType = null;
+      }
+    }
+
+    // Coefficients
+    const coefs = [...text.matchAll(/' (\d+) \|'/g)].map(m => m[1]);
+    let ci = 0;
+    events.forEach(e => { if(e.type==='PM' && coefs[ci]) { e.coef = coefs[ci++]; } });
+
+    // Trouver prev/next
+    const nowMs = now.getTime();
+    let prev = null, next = null, next2 = null;
+    for (const e of events) {
+      if (e.time.getTime() <= nowMs) prev = e;
+      else if (!next) next = e;
+      else if (!next2) next2 = e;
+    }
+
+    const isMontante = prev && prev.type === 'BM';
+    const arrow = isMontante ? '↑' : '↓';
+    const moment = isMontante ? 'Montante' : 'Descendante';
+    const nextPM = events.find(e => e.type==='PM' && e.time.getTime() > nowMs);
+    const coef = nextPM?.coef || prev?.coef || '—';
+
+    card.innerHTML = \`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="color:#29b6f6;font-size:13px;font-weight:600">\${arrow} \${moment}</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#29b6f6">Coeff \${coef}</div>
+      </div>
+      \${next ? \`<div style="color:#f0f4ff;font-size:13px;font-weight:500">Prochaine \${next.type} à \${next.heureStr}</div>\` : ''}
+      \${next2 ? \`<div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:3px">Puis \${next2.type} à \${next2.heureStr}</div>\` : ''}
+    \`;
+
+    // Mettre à jour le badge accueil si c'est le port sélectionné
+    if (code === (SHOM_CODES[PORTS.findIndex(p=>p.nom===selectedPort.nom)] || 'PORT-NAVALO')) {
+      document.getElementById('maree-badge').textContent = \`⚓ \${arrow} \${moment}\`;
+      const detail = document.getElementById('maree-detail');
+      if (detail) {
+        detail.style.display = 'block';
+        detail.onclick = () => showScreen('marees');
+        document.getElementById('maree-port-label').textContent = selectedPort.nom;
+        document.getElementById('maree-coef-badge').textContent = 'Coeff ' + coef;
+        document.getElementById('maree-next').textContent = next ? \`Prochaine \${next.type} à \${next.heureStr}\` : '';
+        document.getElementById('maree-suivante').textContent = next2 ? \`Puis \${next2.type} à \${next2.heureStr}\` : '';
+      }
+    }
+  } catch(e) {
+    card.innerHTML = '<div style="color:rgba(240,244,255,0.4);font-size:12px;padding:8px">Erreur de lecture</div>';
+  }
+}
 
 // Initialiser la vignette SHOM quand on arrive sur l'écran marées
 const origShowScreen = showScreen;
