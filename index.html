@@ -848,40 +848,23 @@ function initPortSelector() {
   });
 }
 
-async function updateMareeBadge() {
+function updateMareeBadge() {
   const d = new Date();
   document.getElementById('home-sub').textContent = d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
-  document.getElementById('maree-badge').textContent = '⚓ Chargement...';
-
-  // Charger les données SHOM via fetch du script vignette
-  document.getElementById('maree-badge').textContent = '⚓ Chargement...';
-  document.getElementById('maree-badge').style.cursor = 'pointer';
-  document.getElementById('maree-badge').onclick = () => showScreen('marees');
-
-  // Données marée : lien direct vers maree.shom.fr par port
-  const shomPortMap = {
-    'Port-Navalo': 'PORT-NAVALO',
-    'Arradon': 'ARRADON',
-    'Le Palais': 'LE_PALAIS',
-    'Houat': 'HOUAT'
-  };
-  const shomCode = shomPortMap[selectedPort.nom] || 'PORT-NAVALO';
-  
   document.getElementById('maree-badge').textContent = '⚓ Marées';
   document.getElementById('maree-badge').style.cursor = 'pointer';
-  document.getElementById('maree-badge').onclick = () => showScreen('marees');
-  
-  // Afficher la card avec lien vers l'onglet marées
+  document.getElementById('maree-badge').onclick = function() { showScreen('marees'); };
   const detail = document.getElementById('maree-detail');
   if (detail) {
     detail.style.display = 'block';
     detail.style.cursor = 'pointer';
-    detail.onclick = () => showScreen('marees');
+    detail.onclick = function() { showScreen('marees'); };
     document.getElementById('maree-port-label').textContent = selectedPort.nom;
-    document.getElementById('maree-coef-badge').textContent = '⚓ Voir';
-    document.getElementById('maree-next').textContent = 'Marées et coefficients officiels';
-    document.getElementById('maree-suivante').textContent = 'Appuie pour ouvrir l\u0027onglet marées →';
+    document.getElementById('maree-coef-badge').textContent = '';
+    document.getElementById('maree-next').textContent = 'Voir les marees';
+    document.getElementById('maree-suivante').textContent = 'Onglet marees';
   }
+  fetchShomData(SHOM_CODES[PORTS.findIndex(function(p){return p.nom===selectedPort.nom;})] || 'PORT-NAVALO', 0);
 }
 
 function fallbackMareeBadge() {
