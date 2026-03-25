@@ -784,16 +784,16 @@ function updateMareeBadge() {
   document.getElementById('home-sub').textContent = d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
   document.getElementById('maree-badge').textContent = '⚓ Marées';
   document.getElementById('maree-badge').style.cursor = 'pointer';
-  document.getElementById('maree-badge').onclick = function() { showScreen('marees'); };
+  document.getElementById('maree-badge').onclick = function() { openMareeLink(); };
   const detail = document.getElementById('maree-detail');
   if (detail) {
     detail.style.display = 'block';
     detail.style.cursor = 'pointer';
-    detail.onclick = function() { showScreen('marees'); };
+    detail.onclick = function() { openMareeLink(); };
     document.getElementById('maree-port-label').textContent = selectedPort.nom;
     document.getElementById('maree-coef-badge').textContent = '';
-    document.getElementById('maree-next').textContent = 'Voir les marees';
-    document.getElementById('maree-suivante').textContent = 'Onglet marees';
+    document.getElementById('maree-next').textContent = next ? 'Prochaine ' + next.type + ' \u00e0 ' + next.heureStr : 'Voir les mar\u00e9es';
+    document.getElementById('maree-suivante').textContent = 'Tap pour ouvrir mar\u00e9es';
   }
   fetchShomData(SHOM_CODES[PORTS.findIndex(function(p){return p.nom===selectedPort.nom;})] || 'PORT-NAVALO', 0);
 }
@@ -1174,10 +1174,7 @@ function showScreen(name) {
   if (navEl) navEl.classList.add('active');
   if (name === 'historique') loadHistorique();
   if (name === 'session') updateSessionDate();
-  if (name === 'marees' && !shomLoaded) {
-    loadShomWidget('PORT-NAVALO', 'port-navalo-morbihan-entr');
-    shomLoaded = true;
-  }
+
   window.scrollTo(0, 0);
 }
 
@@ -1338,7 +1335,7 @@ function parseAndDisplayShom(text, card, code) {
       const detail = document.getElementById('maree-detail');
       if (detail) {
         detail.style.display = 'block';
-        detail.onclick = () => showScreen('marees');
+        detail.onclick = () => openMareeLink();
         document.getElementById('maree-port-label').textContent = selectedPort.nom;
         document.getElementById('maree-coef-badge').textContent = '~' + coef;
         document.getElementById('maree-next').textContent = next ? 'Prochaine ' + next.type + ' \u00e0 ' + next.heureStr : '';
