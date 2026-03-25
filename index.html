@@ -1278,15 +1278,40 @@ async function fetchShomData(code, idx) {
   const card = document.getElementById('shom-data-' + idx);
   if (!card) return;
   card.innerHTML = '<div style="color:rgba(240,244,255,0.4);font-size:12px;padding:8px">Chargement...</div>';
-  try {
-    // Utiliser allorigins pour contourner CORS
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://services.data.shom.fr/hdm/vignette/petite/' + code + '?locale=fr');
-    const res = await fetch(proxyUrl);
-    const text = await res.text();
-    parseAndDisplayShom(text, card, code);
-  } catch(e) {
-    card.innerHTML = '<div style="color:rgba(240,244,255,0.4);font-size:12px;padding:8px">Données indisponibles</div>';
-  }
+  
+  // Créer une iframe srcdoc avec le script SHOM - contourne document.write et CORS
+  const iframeHtml = '<html><head></head><body>' +
+    '<script src="https://services.data.shom.fr/hdm/vignette/petite/' + code + '?locale=fr"><\/script>' +
+    '<script>' +
+    'setTimeout(function(){' +
+    '  var t = document.body.innerText;' +
+    '  parent.postMessage({shomCode:"' + code + '",text:t},"*");' +
+    '},2000);' +
+    '<\/script></body></html>';
+  
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.srcdoc = iframeHtml;
+  document.body.appendChild(iframe);
+  
+  // Ecouter la réponse
+  const handler = function(event) {
+    if (event.data && event.data.shomCode === code) {
+      window.removeEventListener("message", handler);
+      document.body.removeChild(iframe);
+      parseAndDisplayShom(event.data.text, card, code);
+    }
+  };
+  window.addEventListener("message", handler);
+  
+  // Timeout si pas de réponse
+  setTimeout(function() {
+    window.removeEventListener("message", handler);
+    if (iframe.parentNode) document.body.removeChild(iframe);
+    if (card.innerHTML.includes("Chargement")) {
+      card.innerHTML = '<div style="color:rgba(240,244,255,0.4);font-size:12px;padding:8px">Données indisponibles</div>';
+    }
+  }, 5000);
 }
 
 function parseAndDisplayShom(text, card, code) {
