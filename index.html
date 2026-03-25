@@ -606,72 +606,6 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
     </div>
   </div>
 
-  <!-- MARÉES -->
-  <div class="screen" id="screen-marees">
-    <div class="header">
-      <div class="header-top">
-        <h1>⚓ <span>Marées</span></h1>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px" id="port-chips">
-        <div class="chip selected" data-port="0" onclick="selectPort(this)">Port-Navalo</div>
-        <div class="chip" data-port="1" onclick="selectPort(this)">Arradon</div>
-        <div class="chip" data-port="2" onclick="selectPort(this)">Le Palais</div>
-        <div class="chip" data-port="3" onclick="selectPort(this)">Houat</div>
-      </div>
-    </div>
-    <div class="scroll">
-
-      <div class="port-panel" id="panel-0">
-        <a href="https://mareespeche.com/fr/bretagne-atlantique/port-navalo-morbihan-entr" target="_blank"
-          style="display:flex;align-items:center;gap:14px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.3);border-radius:14px;padding:16px;text-decoration:none;margin-bottom:12px">
-          <span style="font-size:32px">⚓</span>
-          <div>
-            <div style="color:#29b6f6;font-size:15px;font-weight:700">Marées Port-Navalo</div>
-            <div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:3px">Coefficient · Horaires PM/BM · Activité 7j →</div>
-          </div>
-        </a>
-      </div>
-
-      <div class="port-panel" id="panel-1" style="display:none">
-        <a href="https://mareespeche.com/fr/bretagne-atlantique/arradon" target="_blank"
-          style="display:flex;align-items:center;gap:14px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.3);border-radius:14px;padding:16px;text-decoration:none;margin-bottom:12px">
-          <span style="font-size:32px">⚓</span>
-          <div>
-            <div style="color:#29b6f6;font-size:15px;font-weight:700">Marées Arradon</div>
-            <div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:3px">Coefficient · Horaires PM/BM · Activité 7j →</div>
-          </div>
-        </a>
-      </div>
-
-      <div class="port-panel" id="panel-2" style="display:none">
-        <a href="https://mareespeche.com/fr/bretagne-atlantique/le-palais-belle-ile" target="_blank"
-          style="display:flex;align-items:center;gap:14px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.3);border-radius:14px;padding:16px;text-decoration:none;margin-bottom:12px">
-          <span style="font-size:32px">⚓</span>
-          <div>
-            <div style="color:#29b6f6;font-size:15px;font-weight:700">Marées Le Palais</div>
-            <div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:3px">Coefficient · Horaires PM/BM · Activité 7j →</div>
-          </div>
-        </a>
-      </div>
-
-      <div class="port-panel" id="panel-3" style="display:none">
-        <a href="https://mareespeche.com/fr/bretagne-atlantique/ile-dhouat" target="_blank"
-          style="display:flex;align-items:center;gap:14px;background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.3);border-radius:14px;padding:16px;text-decoration:none;margin-bottom:12px">
-          <span style="font-size:32px">⚓</span>
-          <div>
-            <div style="color:#29b6f6;font-size:15px;font-weight:700">Marées Houat</div>
-            <div style="color:rgba(240,244,255,0.5);font-size:12px;margin-top:3px">Coefficient · Horaires PM/BM · Activité 7j →</div>
-          </div>
-        </a>
-      </div>
-
-      <div style="text-align:center;padding:20px 0 8px">
-        <div style="font-size:11px;color:rgba(240,244,255,0.3)">Données officielles mareespeche.com</div>
-      </div>
-
-    </div>
-  </div>
-
     <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <div class="nav-item active" id="nav-home" onclick="showScreen('home')">
@@ -692,7 +626,7 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       Conseils
     </div>
-    <div class="nav-item" id="nav-marees" onclick="showScreen('marees')">
+    <div class="nav-item" id="nav-marees" onclick="openMareeLink()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12 Q6 8 10 12 Q14 16 18 12 Q20 10 22 12"/><path d="M2 17 Q6 13 10 17 Q14 21 18 17 Q20 15 22 17"/><path d="M2 7 Q6 3 10 7 Q14 11 18 7 Q20 5 22 7"/></svg>
       Marées
     </div>
@@ -816,11 +750,16 @@ function updateSessionDate() {
 
 // PORTS DE RÉFÉRENCE
 const PORTS = [
-  { nom: 'Port-Navalo', lat: 47.5333, lng: -2.9167 },
-  { nom: 'Arradon',     lat: 47.6167, lng: -2.8167 },
-  { nom: 'Le Palais',   lat: 47.3500, lng: -3.1500 },
-  { nom: 'Houat',       lat: 47.3833, lng: -2.9500 },
+  { nom: 'Port-Navalo', lat: 47.5333, lng: -2.9167, mareeUrl: 'https://mareespeche.com/fr/bretagne-atlantique/port-navalo-morbihan-entr' },
+  { nom: 'Arradon',     lat: 47.6167, lng: -2.8167, mareeUrl: 'https://mareespeche.com/fr/bretagne-atlantique/arradon' },
+  { nom: 'Le Palais',   lat: 47.3500, lng: -3.1500, mareeUrl: 'https://mareespeche.com/fr/bretagne-atlantique/le-palais-belle-ile' },
+  { nom: 'Houat',       lat: 47.3833, lng: -2.9500, mareeUrl: 'https://mareespeche.com/fr/bretagne-atlantique/ile-dhouat' },
 ];
+
+function openMareeLink() {
+  const url = selectedPort.mareeUrl || 'https://mareespeche.com/fr/bretagne-atlantique/port-navalo-morbihan-entr';
+  window.open(url, '_blank');
+}
 let selectedPort = JSON.parse(localStorage.getItem('fishlog_port') || 'null') || PORTS[0];
 
 function initPortSelector() {
@@ -1246,25 +1185,8 @@ function showScreen(name) {
 const SHOM_CODES = ['PORT-NAVALO','ARRADON','LE_PALAIS','HOUAT'];
 const SHOM_NAMES = ['Port-Navalo','Arradon','Le Palais','Houat'];
 
-function selectPort(el) {
-  document.querySelectorAll('#port-chips .chip').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  const portIdx = parseInt(el.dataset.port);
-  document.querySelectorAll('.port-panel').forEach(p => p.style.display = 'none');
-  const panel = document.getElementById('panel-' + portIdx);
-  if (panel) {
-    panel.style.display = 'block';
-    if (!panel.dataset.loaded) {
-      fetchShomData(SHOM_CODES[portIdx], portIdx);
-      panel.dataset.loaded = '1';
-    }
-  }
-}
-
-function loadShomWidget() {
-  fetchShomData('PORT-NAVALO', 0);
-  document.querySelector('[data-port="0"]') && (document.getElementById('panel-0').dataset.loaded = '1');
-}
+function selectPort(el) {}
+function loadShomWidget() {}
 
 // Corrections par rapport à Port-Navalo (minutes)
 const PORT_CORRECTIONS = {
@@ -1344,9 +1266,10 @@ function fetchShomData(code, idx) {
     const detail = document.getElementById('maree-detail');
     if (detail) {
       detail.style.display = 'block';
-      detail.onclick = function() { showScreen('marees'); };
+      detail.onclick = function() { openMareeLink(); };
       document.getElementById('maree-port-label').textContent = selectedPort.nom;
-      document.getElementById('maree-coef-badge').innerHTML = '<a href="https://mareespeche.com/fr/bretagne-atlantique/port-navalo-morbihan-entr" target="_blank" style="color:#29b6f6;font-size:11px;text-decoration:none">Voir coeff →</a>';
+      const mareeUrl = selectedPort.mareeUrl || 'https://mareespeche.com/fr/bretagne-atlantique/port-navalo-morbihan-entr';
+      document.getElementById('maree-coef-badge').innerHTML = '<a href="' + mareeUrl + '" target="_blank" style="color:#29b6f6;font-size:12px;font-weight:600;text-decoration:none">Voir coeff →</a>';
       document.getElementById('maree-next').textContent = next ? 'Prochaine ' + next.type + ' à ' + next.heureStr : '';
       document.getElementById('maree-suivante').textContent = next2 ? 'Puis ' + next2.type + ' à ' + next2.heureStr : '';
     }
