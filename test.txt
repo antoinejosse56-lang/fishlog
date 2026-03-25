@@ -1,0 +1,7 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Test SHOM</h1>
+<script src="https://services.data.shom.fr/hdm/vignette/petite/PORT-NAVALO?locale=fr"></script>
+</body>
+</html>
