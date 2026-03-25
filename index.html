@@ -291,6 +291,7 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
         </div>
       </div>
       <div id="home-sub" class="header-sub" style="margin-bottom:6px">Port-Navalo · chargement...</div>
+      <div id="next-tide-info" style="display:none;font-size:12px;color:var(--accent);margin-top:2px;margin-bottom:4px"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
         <select id="port-selector" style="background:rgba(41,182,246,0.15);border:1px solid rgba(41,182,246,0.4);border-radius:20px;padding:6px 14px;color:#f0f4ff;font-size:13px;font-weight:500;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;min-width:140px">
         </select>
@@ -404,6 +405,37 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
             <option value="descendante">Descendante</option>
             <option value="etale_hm">Étale HM</option>
             <option value="etale_bm">Étale BM</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Sens dérive</label>
+          <select class="form-select" id="sens-derive">
+            <option value="">—</option>
+            <option value="N">Nord</option>
+            <option value="NE">Nord-Est</option>
+            <option value="E">Est</option>
+            <option value="SE">Sud-Est</option>
+            <option value="S">Sud</option>
+            <option value="SO">Sud-Ouest</option>
+            <option value="O">Ouest</option>
+            <option value="NO">Nord-Ouest</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sens courant</label>
+          <select class="form-select" id="sens-courant">
+            <option value="">—</option>
+            <option value="N">Nord</option>
+            <option value="NE">Nord-Est</option>
+            <option value="E">Est</option>
+            <option value="SE">Sud-Est</option>
+            <option value="S">Sud</option>
+            <option value="SO">Sud-Ouest</option>
+            <option value="O">Ouest</option>
+            <option value="NO">Nord-Ouest</option>
           </select>
         </div>
       </div>
@@ -766,7 +798,25 @@ async function updateMareeBadge() {
     const nearExtreme = phase < 0.02 || (phase > 0.48 && phase < 0.52) || phase > 0.98;
     if (nearExtreme) { moment = 'Étale'; arrow = '—'; }
     
+    // Calculer heure prochaine PM ou BM
+    let nextExtremeMs;
+    if (phase < 0.5) {
+      nextExtremeMs = REF_HIGH_TIDE + corrMin + Math.ceil((nowMs - REF_HIGH_TIDE - corrMin) / TIDAL_PERIOD * 2 + 0.5) * TIDAL_PERIOD / 2;
+    } else {
+      nextExtremeMs = REF_HIGH_TIDE + corrMin + Math.ceil((nowMs - REF_HIGH_TIDE - corrMin) / TIDAL_PERIOD * 2 + 0.5) * TIDAL_PERIOD / 2;
+    }
+    // Trouver la prochaine PM ou BM
+    let t = REF_HIGH_TIDE + corrMin;
+    while (t <= nowMs) t += TIDAL_PERIOD / 2;
+    const nextTime = new Date(t);
+    const nextHour = nextTime.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    const nextPhase = ((t - REF_HIGH_TIDE - corrMin) % TIDAL_PERIOD + TIDAL_PERIOD) % TIDAL_PERIOD / TIDAL_PERIOD;
+    const nextIsPM = nextPhase < 0.1 || nextPhase > 0.9;
+    const nextLabel = nextIsPM ? 'PM' : 'BM';
+    
     document.getElementById('maree-badge').textContent = `⚓ ${arrow} ${moment} · ${coef}`;
+    document.getElementById('next-tide-info').textContent = `Prochaine ${nextLabel} à ${nextHour}`;
+    document.getElementById('next-tide-info').style.display = 'block';
     
     // Pré-remplir coefficient dans le formulaire session
     const coefInput = document.getElementById('coef-maree');
@@ -983,7 +1033,9 @@ async function saveSession() {
     moment_maree: document.getElementById('moment-maree').value || null,
     nb_prises: parseInt(document.getElementById('nb-prises').value) || 0,
     succes: getChip('chips-succes') === 'true',
-    commentaire: document.getElementById('commentaire').value || null
+    commentaire: document.getElementById('commentaire').value || null,
+    sens_derive: document.getElementById('sens-derive').value || null,
+    sens_courant: document.getElementById('sens-courant').value || null
   };
 
   try {
@@ -1034,7 +1086,7 @@ async function deleteSession(id) {
 }
 
 function resetForm() {
-  ['vent-dir','vent-force','temp-air','temp-eau','pression','turbidite','coef-maree','moment-maree','nb-prises','commentaire','leurre-nom','leurre-type','leurre-couleur','leurre-taille','espece'].forEach(id => {
+  ['vent-dir','vent-force','temp-air','temp-eau','pression','turbidite','coef-maree','moment-maree','nb-prises','commentaire','leurre-nom','leurre-type','leurre-couleur','leurre-taille','espece','sens-derive','sens-courant'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
