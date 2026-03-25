@@ -338,12 +338,12 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
         <label class="form-label">Nouveau spot (optionnel)</label>
         <div style="display:flex;gap:8px">
           <input class="form-input" id="new-spot-nom" placeholder="Nom du spot" style="flex:1">
-          <button class="btn btn-ghost" style="width:auto;padding:0 14px;font-size:12px" onclick="addSpot()">+ Ajouter</button>
+          <button type="button" class="btn btn-ghost" style="width:auto;padding:0 14px;font-size:12px" onclick="addSpot()">+ Ajouter</button>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">GPS</label>
-        <button class="gps-btn" onclick="getGPS()">
+        <button type="button" class="gps-btn" onclick="getGPS()">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
           <span id="gps-text">Capturer ma position</span>
         </button>
@@ -526,7 +526,7 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
         <textarea class="form-textarea" id="commentaire" placeholder="Observations, conditions particulières..."></textarea>
       </div>
       <div style="margin-top:8px">
-        <button class="btn btn-primary" onclick="saveSession()">💾 Enregistrer la session</button>
+        <button type="button" class="btn btn-primary" onclick="saveSession()">💾 Enregistrer la session</button>
       </div>
       <div style="height:8px"></div>
     </div>
@@ -601,12 +601,37 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
           </div>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="getReco()" style="margin-bottom:20px">🔍 Trouver les meilleurs spots</button>
+      <button type="button" class="btn btn-primary" onclick="getReco()" style="margin-bottom:20px">🔍 Trouver les meilleurs spots</button>
       <div id="reco-results"></div>
     </div>
   </div>
 
-    <!-- BOTTOM NAV -->
+    <!-- SPOTS -->
+  <div class="screen" id="screen-spots">
+    <div class="header">
+      <div class="header-top">
+        <h1>📍 <span>Spots</span></h1>
+      </div>
+      <div class="header-sub">Vos lieux de pêche</div>
+    </div>
+    <div class="scroll">
+      <div class="form-group">
+        <label class="form-label">Ajouter un spot</label>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" id="spots-new-nom" placeholder="Nom du spot" style="flex:1">
+          <button type="button" class="btn btn-ghost" style="width:auto;padding:0 14px;font-size:12px" onclick="addSpotFromScreen()">+ Ajouter</button>
+        </div>
+      </div>
+      <button type="button" class="gps-btn" onclick="getGPSForSpot()" style="margin-bottom:14px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        <span id="gps-spot-text">Capturer ma position</span>
+      </button>
+      <div class="section-title">Mes spots</div>
+      <div id="spots-list"><div class="loader"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <div class="nav-item active" id="nav-home" onclick="showScreen('home')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -947,7 +972,7 @@ function getGPS() {
     document.getElementById('gps-lng').value = currentGPS.lng;
     btn.textContent = `📍 ${currentGPS.lat.toFixed(4)}, ${currentGPS.lng.toFixed(4)}`;
   }, () => {
-    showToast('Impossible d\'obtenir le GPS', true);
+    showToast("Impossible d'obtenir le GPS", true);
     btn.textContent = 'Capturer ma position';
   });
 }
@@ -1173,6 +1198,7 @@ function showScreen(name) {
   const navEl = document.getElementById('nav-' + name);
   if (navEl) navEl.classList.add('active');
   if (name === 'historique') loadHistorique();
+  if (name === 'spots') loadSpotsScreen();
   if (name === 'session') updateSessionDate();
 
   window.scrollTo(0, 0);
@@ -1281,7 +1307,7 @@ function parseAndDisplayShom(text, card, code) {
     let lastType = null;
 
     for (const line of lines) {
-      const clean = line.replace(/<[^>]+>/g,'').replace(/\'/g,"'").trim();
+      const clean = line.replace(/<[^>]+>/g,'').replace(/'/g,"'").trim();
       if (clean.startsWith(" PM'") || clean === " PM') ") lastType = 'PM';
       else if (clean.startsWith(" BM'") || clean === " BM') ") lastType = 'BM';
       const hm = clean.match(/^\s*(\d{2}:\d{2})\s*\|?\s*$/);
@@ -1349,6 +1375,102 @@ function parseAndDisplayShom(text, card, code) {
 
 // Initialiser la vignette SHOM quand on arrive sur l'écran marées
 const origShowScreen = showScreen;
+
+// SPOTS SCREEN
+let currentGPSSpot = { lat: null, lng: null };
+
+function getGPSForSpot() {
+  const btn = document.getElementById('gps-spot-text');
+  btn.textContent = 'Localisation...';
+  if (!navigator.geolocation) { showToast('GPS non disponible', true); return; }
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    currentGPSSpot.lat = pos.coords.latitude;
+    currentGPSSpot.lng = pos.coords.longitude;
+    btn.textContent = currentGPSSpot.lat.toFixed(5) + ', ' + currentGPSSpot.lng.toFixed(5);
+  }, function() {
+    showToast("Impossible d'obtenir le GPS", true);
+    btn.textContent = 'Capturer ma position';
+  });
+}
+
+async function addSpotFromScreen() {
+  const nom = document.getElementById('spots-new-nom').value.trim();
+  if (!nom) { showToast('Entre un nom de spot', true); return; }
+  try {
+    await sb('spots', { method: 'POST', body: JSON.stringify({
+      nom: nom,
+      latitude: currentGPSSpot.lat,
+      longitude: currentGPSSpot.lng
+    })});
+    document.getElementById('spots-new-nom').value = '';
+    document.getElementById('gps-spot-text').textContent = 'Capturer ma position';
+    currentGPSSpot = { lat: null, lng: null };
+    await loadSpots();
+    await loadSpotsScreen();
+    showToast('Spot ajouté ✅');
+  } catch(e) { showToast('Erreur ajout spot', true); }
+}
+
+function copyGPS(lat, lng, nom) {
+  const txt = lat.toFixed(6) + ', ' + lng.toFixed(6);
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(function() {
+      showToast('GPS copié : ' + txt);
+    });
+  } else {
+    const el = document.createElement('textarea');
+    el.value = txt;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('GPS copié : ' + txt);
+  }
+}
+
+async function deleteSpot(id, nom) {
+  if (!confirm('Supprimer le spot "' + nom + '" ?')) return;
+  try {
+    await sb('sessions?spot_id=eq.' + id, { method: 'PATCH',
+      body: JSON.stringify({ spot_id: null }), prefer: 'return=minimal' });
+    await sb('spots?id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' });
+    await loadSpots();
+    await loadSpotsScreen();
+    showToast('Spot supprimé');
+  } catch(e) { showToast('Erreur suppression', true); console.error(e); }
+}
+
+async function loadSpotsScreen() {
+  const el = document.getElementById('spots-list');
+  if (!el) return;
+  try {
+    const data = await sb('spots?select=*&order=nom');
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">X</div><div class="empty-title">Aucun spot</div></div>';
+      return;
+    }
+    let html = '';
+    data.forEach(function(s) {
+      const hasGPS = s.latitude && s.longitude;
+      const gpsText = hasGPS ? s.latitude.toFixed(5) + ', ' + s.longitude.toFixed(5) : 'Pas de GPS';
+      html += '<div class="card" style="display:flex;align-items:center;gap:10px;padding:12px 14px">';
+      html += '<div style="flex:1;min-width:0">';
+      html += '<div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:#f0f4ff">' + s.nom + '</div>';
+      html += '<div style="font-size:11px;color:rgba(240,244,255,0.4);margin-top:3px">' + gpsText + '</div>';
+      html += '</div>';
+      if (hasGPS) {
+        html += '<button type="button" data-lat="' + s.latitude + '" data-lng="' + s.longitude + '" onclick="copyGPS(parseFloat(this.dataset.lat),parseFloat(this.dataset.lng))" style="background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.3);color:#29b6f6;border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer;flex-shrink:0">GPS</button>';
+      }
+      if (isAdmin) {
+        html += '<button type="button" data-id="' + s.id + '" data-nom="' + s.nom.replace(/"/g,'') + '" onclick="deleteSpot(this.dataset.id,this.dataset.nom)" style="background:rgba(239,83,80,0.15);border:1px solid rgba(239,83,80,0.3);color:#ef5350;border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer;flex-shrink:0">Suppr.</button>';
+      }
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div class="loader">Erreur de chargement</div>';
+  }
+}
 
 // TOAST
 function showToast(msg, isError = false) {
