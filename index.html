@@ -290,7 +290,11 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
           <div class="header-badge" id="maree-badge">⚓ —</div>
         </div>
       </div>
-      <div class="header-sub" id="home-sub">Lorient · Journal de pêche collaboratif</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <select id="port-selector" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:5px 12px;color:var(--text-primary);font-size:12px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer">
+        </select>
+        <div class="header-sub" id="home-sub" style="font-size:12px"></div>
+      </div>
     </div>
     <div class="scroll">
       <div class="stats-row">
@@ -637,6 +641,7 @@ let isAdmin = false;
 document.addEventListener('DOMContentLoaded', async () => {
   checkUser();
   updateSessionDate();
+  initPortSelector();
   await loadSpots();
   await loadPecheurs();
   await loadStats();
@@ -688,12 +693,80 @@ function updateSessionDate() {
   document.getElementById('session-date-badge').textContent = now.toLocaleDateString('fr-FR', opts);
 }
 
-function updateMareeBadge() {
-  const h = new Date().getHours();
-  let maree = h >= 6 && h < 12 ? '↑ Montante' : h >= 12 && h < 18 ? '↓ Descendante' : '— Étale';
-  document.getElementById('maree-badge').textContent = '⚓ ' + maree;
+// PORTS DE RÉFÉRENCE
+const PORTS = [
+  { nom: 'Port-Navalo', id: '104', code: 'port-navalo' },
+  { nom: 'Arradon',     id: '106', code: 'arradon' },
+  { nom: 'Le Palais',  id: '101', code: 'le-palais' },
+  { nom: 'Houat',      id: '110', code: 'houat' },
+];
+let selectedPort = JSON.parse(localStorage.getItem('fishlog_port') || 'null') || PORTS[0];
+
+function initPortSelector() {
+  const sel = document.getElementById('port-selector');
+  if (!sel) return;
+  PORTS.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id; o.textContent = p.nom;
+    if (p.id === selectedPort.id) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', () => {
+    selectedPort = PORTS.find(p => p.id === sel.value) || PORTS[0];
+    localStorage.setItem('fishlog_port', JSON.stringify(selectedPort));
+    updateMareeBadge();
+  });
+}
+
+async function updateMareeBadge() {
   const d = new Date();
-  document.getElementById('home-sub').textContent = 'Lorient · ' + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('home-sub').textContent = selectedPort.nom + ' · ' + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('maree-badge').textContent = '⚓ Chargement...';
+
+  try {
+    const today = d.toISOString().slice(0,10).replace(/-/g,'');
+    const url = `https://services.data.shom.fr/spm/wps?service=WPS&version=1.0.0&request=Execute&Identifier=SPM.Marees.Calcul&datarequest=${today}&portId=${selectedPort.id}&nbDays=1&output=json`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('SHOM error');
+    const data = await res.json();
+    
+    // Trouver le moment actuel dans les données
+    const now = Date.now();
+    const events = data?.wps_data?.events || [];
+    
+    if (events.length > 0) {
+      // Trouver les 2 événements encadrant l'heure actuelle
+      let prev = null, next = null;
+      for (let i = 0; i < events.length; i++) {
+        const t = new Date(events[i].timestamp).getTime();
+        if (t <= now) prev = events[i];
+        else if (!next) next = events[i];
+      }
+      
+      let moment = '—';
+      let coef = '';
+      if (prev && next) {
+        const isPM = prev.type === 'PM'; // Pleine mer précédente = descendante
+        moment = isPM ? '↓ Descendante' : '↑ Montante';
+        coef = next.coef ? ' · Coeff ' + next.coef : '';
+      } else if (prev) {
+        moment = prev.type === 'PM' ? '↓ Descendante' : '↑ Montante';
+        coef = prev.coef ? ' · Coeff ' + prev.coef : '';
+      }
+      document.getElementById('maree-badge').textContent = '⚓ ' + moment + coef;
+    } else {
+      fallbackMareeBadge();
+    }
+  } catch(e) {
+    fallbackMareeBadge();
+  }
+}
+
+function fallbackMareeBadge() {
+  // Calcul simplifié basé sur heure si API indisponible
+  const h = new Date().getHours();
+  const moment = h >= 6 && h < 12 ? '↑ Montante' : h >= 12 && h < 18 ? '↓ Descendante' : '— Étale';
+  document.getElementById('maree-badge').textContent = '⚓ ' + moment;
 }
 
 async function loadSpots() {
