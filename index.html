@@ -292,6 +292,14 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
       </div>
       <div id="home-sub" class="header-sub" style="margin-bottom:6px">Port-Navalo · chargement...</div>
       <div id="next-tide-info" style="display:none;font-size:12px;color:var(--accent);margin-top:2px;margin-bottom:4px"></div>
+      <div id="maree-detail" style="display:none;background:rgba(41,182,246,0.08);border:1px solid rgba(41,182,246,0.2);border-radius:10px;padding:10px 14px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div id="maree-port-label" style="font-size:11px;color:rgba(240,244,255,0.5);text-transform:uppercase;letter-spacing:0.8px"></div>
+          <div id="maree-coef-badge" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#29b6f6"></div>
+        </div>
+        <div id="maree-next" style="font-size:13px;color:#f0f4ff;margin-top:4px;font-weight:500"></div>
+        <div id="maree-suivante" style="font-size:12px;color:rgba(240,244,255,0.5);margin-top:2px"></div>
+      </div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
         <select id="port-selector" style="background:rgba(41,182,246,0.15);border:1px solid rgba(41,182,246,0.4);border-radius:20px;padding:6px 14px;color:#f0f4ff;font-size:13px;font-weight:500;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;min-width:140px">
         </select>
@@ -787,6 +795,7 @@ function initPortSelector() {
   sel.addEventListener('change', () => {
     selectedPort = PORTS.find(p => p.nom === sel.value) || PORTS[0];
     localStorage.setItem('fishlog_port', JSON.stringify(selectedPort));
+    shomLoaded = false;
     updateMareeBadge();
   });
 }
@@ -796,13 +805,96 @@ async function updateMareeBadge() {
   document.getElementById('home-sub').textContent = d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
   document.getElementById('maree-badge').textContent = '⚓ Chargement...';
 
-  // Badge simplifié - données exactes disponibles dans l'onglet Marées (SHOM)
-  const d2 = new Date();
-  document.getElementById('maree-badge').textContent = '⚓ Voir Marées';
-  document.getElementById('next-tide-info').textContent = 'Données SHOM officielles → onglet Marées';
-  document.getElementById('next-tide-info').style.display = 'block';
+  // Charger les données SHOM via fetch du script vignette
+  document.getElementById('maree-badge').textContent = '⚓ Chargement...';
   document.getElementById('maree-badge').style.cursor = 'pointer';
   document.getElementById('maree-badge').onclick = () => showScreen('marees');
+
+  try {
+    const shomCodes = {
+      'Port-Navalo': 'PORT-NAVALO',
+      'Arradon': 'ARRADON',
+      'Le Palais': 'LE_PALAIS',
+      'Houat': 'HOUAT'
+    };
+    const code = shomCodes[selectedPort.nom] || 'PORT-NAVALO';
+    const res = await fetch(`https://services.data.shom.fr/hdm/vignette/petite/${code}?locale=fr`);
+    const text = await res.text();
+
+    // Parser les données PM/BM depuis le script SHOM
+    const now = new Date();
+    const todayStr = now.toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'/');
+    const events = [];
+    
+    // Extraire toutes les lignes PM/BM avec heure et coeff
+    const pmBmRegex = /(?:PM|BM).*?(\d{2}:\d{2}).*?[\d.]+.*?(\d+|---)/gs;
+    const lines = text.split("ifrm.document.write('");
+    let currentType = null;
+    
+    lines.forEach(line => {
+      const cleanLine = line.replace(/\'/g,"'").replace(/<[^>]+>/g,'').trim();
+      if (cleanLine.includes("' PM'") || cleanLine === " PM') ") currentType = 'PM';
+      if (cleanLine.includes("' BM'") || cleanLine === " BM') ") currentType = 'BM';
+      
+      const heureMatch = cleanLine.match(/^\s*(\d{2}:\d{2})\s*\|?\s*$/);
+      if (heureMatch && currentType) {
+        const [h, m] = heureMatch[1].split(':').map(Number);
+        const t = new Date(now);
+        t.setHours(h, m, 0, 0);
+        events.push({ type: currentType, time: t, heureStr: heureMatch[1], coef: null });
+        currentType = null;
+      }
+    });
+
+    // Extraire coefficients séparément
+    const coefMatches = [...text.matchAll(/' (\d+) \|'/g)];
+    let coefIdx = 0;
+    events.forEach(e => {
+      if (e.type === 'PM' && coefMatches[coefIdx]) {
+        e.coef = coefMatches[coefIdx][1];
+        coefIdx++;
+      }
+    });
+
+    // Trouver événement précédent et suivant
+    const nowMs = now.getTime();
+    let prev = null, next = null, next2 = null;
+    for (const e of events) {
+      if (e.time.getTime() <= nowMs) prev = e;
+      else if (!next) next = e;
+      else if (!next2) next2 = e;
+    }
+
+    // Déterminer si montante ou descendante
+    let moment = '—', arrow = '—';
+    if (prev && next) {
+      const isMontante = prev.type === 'BM';
+      moment = isMontante ? 'Montante' : 'Descendante';
+      arrow = isMontante ? '↑' : '↓';
+    }
+
+    // Coeff actuel (prochain PM)
+    const nextPM = events.find(e => e.type === 'PM' && e.time.getTime() > nowMs);
+    const coefDisplay = nextPM?.coef || prev?.coef || '—';
+
+    // Afficher badge
+    document.getElementById('maree-badge').textContent = `⚓ ${arrow} ${moment}`;
+
+    // Afficher détail dans la card
+    if (next) {
+      const detail = document.getElementById('maree-detail');
+      detail.style.display = 'block';
+      document.getElementById('maree-port-label').textContent = selectedPort.nom;
+      document.getElementById('maree-coef-badge').textContent = `Coeff ${coefDisplay}`;
+      document.getElementById('maree-next').textContent = `Prochaine ${next.type} à ${next.heureStr}`;
+      document.getElementById('maree-suivante').textContent = next2 ? `Puis ${next2.type} à ${next2.heureStr}` : '';
+    }
+    document.getElementById('next-tide-info').style.display = 'none';
+
+  } catch(e) {
+    document.getElementById('maree-badge').textContent = '⚓ Marées';
+    console.error('SHOM error:', e);
+  }
 }
 
 function fallbackMareeBadge() {
