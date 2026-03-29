@@ -2889,7 +2889,10 @@ function printEdl(edl,tenant,htmlOverride){
   const html=htmlOverride||buildEdlHtml(edl);
   try{
     const w=window.open('','_blank');
-    if(w){w.document.write(html);w.document.close();}
+    if(w){
+      const htmlP=html.replace('</body>','<script>window.onload=function(){setTimeout(function(){window.print();},600);};<\/script></body>');
+      w.document.write(htmlP);w.document.close();
+    }
     else{const url='data:text/html;charset=utf-8,'+encodeURIComponent(html);window.location.href=url;}
   }catch(e){
     const a=document.createElement('a');
@@ -3846,14 +3849,30 @@ function renderModal(){
     const mb=S.famille.find(x=>x.id===m.membreId)||{};
     html=`${mhd('Document — '+(mb.prenom||''))}
     <div class="form-group"><label>Type de document *</label><select id="m-dtype">
-      ${['Passeport','Carte nationale d\'identité','Permis de conduire','Carte Vitale','Mutuelle','Carte de séjour','Acte de naissance','Livret de famille','Autre'].map(t=>`<option>${t}</option>`).join('')}
+      ${['Passeport','Carte nationale d\'identité','Permis de conduire','Carte Vitale','Mutuelle','Carte de séjour','Acte de naissance','Livret de famille','Autre'].map(t=>`<option ${(m.doc?.type===t)?'selected':''}>${t}</option>`).join('')}
     </select></div>
-    <div class="form-group"><label>N° de document</label><input id="m-dnum" placeholder="Ex: 12AB34567"></div>
+    <div class="form-group"><label>N° de document</label><input id="m-dnum" value="${(m.doc?.numero)||''}" placeholder="Ex: 12AB34567"></div>
     <div class="g2c">
-      <div class="form-group"><label>Date de délivrance</label><input id="m-ddelivre" type="date"></div>
-      <div class="form-group"><label>Date d'expiration</label><input id="m-dexpiry" type="date"></div>
+      <div class="form-group"><label>Date de délivrance</label><input id="m-ddelivre" type="date" value="${(m.doc?.date_delivrance)||''}"></div>
+      <div class="form-group"><label>Date d'expiration</label><input id="m-dexpiry" type="date" value="${(m.doc?.date_expiry)||''}"></div>
     </div>
     <div class="form-group"><label>Notes</label><input id="m-dnotes"></div>
+    <div class="g2c">
+      <div class="form-group">
+        <label>🔔 Rappel avant expiration</label>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <input id="m-dreminder" type="number" min="1" max="365" value="${(m.doc?.reminder_days)||60}" style="width:80px;padding:6px 8px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text)">
+          <span style="font-size:12px;color:var(--text2)">jours avant</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🔗 Document Drive</label>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <input id="m-ddrive" value="${(m.doc?.drive_url)||''}" placeholder="https://drive.google.com/..." style="flex:1;padding:6px 8px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:12px">
+          <button type="button" class="btn btn-sm" onclick="openDrivePicker(f=>{document.getElementById('m-ddrive').value=f.url;})">📁</button>
+        </div>
+      </div>
+    </div>
     ${mf}`;
   }
 
@@ -7264,7 +7283,11 @@ async function autoSendQuittance(tenant,payment,mois,annee,commentaire=''){
   // Open print preview
   try{
     const w=window.open('','_blank');
-    if(w){w.document.write(emailHtml);w.document.close();}
+    if(w){
+      // Add auto-print script to the HTML before writing
+      const htmlWithPrint=emailHtml.replace('</body>','<script>window.onload=function(){setTimeout(function(){window.print();},600);};<\/script></body>');
+      w.document.write(htmlWithPrint);w.document.close();
+    }
     else{
       // Fallback: data URI
       const url='data:text/html;charset=utf-8,'+encodeURIComponent(emailHtml);
