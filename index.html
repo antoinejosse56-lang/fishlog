@@ -1019,6 +1019,42 @@ function getChip(groupId) {
 }
 
 // GPS
+function dmsToDecimal(deg, min, sec) {
+  return parseFloat(deg) + parseFloat(min||0)/60 + parseFloat(sec||0)/3600;
+}
+
+function convertDMS() {
+  const latD = document.getElementById('lat-deg').value;
+  const latM = document.getElementById('lat-min').value;
+  const latS = document.getElementById('lat-sec').value;
+  const lngD = document.getElementById('lng-deg').value;
+  const lngM = document.getElementById('lng-min').value;
+  const lngS = document.getElementById('lng-sec').value;
+  if (!latD || !lngD) { showToast('Entre au moins les degrés', true); return; }
+  const lat = dmsToDecimal(latD, latM, latS);
+  const lng = -dmsToDecimal(lngD, lngM, lngS); // Ouest = négatif
+  currentGPS.lat = lat;
+  currentGPS.lng = lng;
+  document.getElementById('gps-lat').value = lat;
+  document.getElementById('gps-lng').value = lng;
+  document.getElementById('gps-text').textContent = lat.toFixed(5) + ', ' + lng.toFixed(5) + ' ✓';
+  showToast('Coordonnées validées ✅');
+}
+
+function convertDMSSpot() {
+  const latD = document.getElementById('spot-lat-deg').value;
+  const latM = document.getElementById('spot-lat-min').value;
+  const latS = document.getElementById('spot-lat-sec').value;
+  const lngD = document.getElementById('spot-lng-deg').value;
+  const lngM = document.getElementById('spot-lng-min').value;
+  const lngS = document.getElementById('spot-lng-sec').value;
+  if (!latD || !lngD) { showToast('Entre au moins les degrés', true); return; }
+  currentGPSSpot.lat = dmsToDecimal(latD, latM, latS);
+  currentGPSSpot.lng = -dmsToDecimal(lngD, lngM, lngS);
+  document.getElementById('gps-spot-text').textContent = currentGPSSpot.lat.toFixed(5) + ', ' + currentGPSSpot.lng.toFixed(5) + ' ✓';
+  showToast('Coordonnées validées ✅');
+}
+
 function getGPS() {
   const btn = document.getElementById('gps-text');
   btn.textContent = 'Localisation...';
