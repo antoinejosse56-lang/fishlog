@@ -275,6 +275,31 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
 .maree-indicator { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
 .maree-bar { flex: 1; height: 4px; background: var(--glass); border-radius: 2px; overflow: hidden; }
 .maree-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-green)); border-radius: 2px; transition: width 0.5s; }
+/* LEURRES */
+.lv-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r); padding: 14px; margin-bottom: 10px; }
+.lv-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.lv-name { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+.lv-fam { font-size: 11px; color: var(--text-muted); }
+.lv-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; margin: 8px 0 10px; }
+.lv-bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent-green), var(--accent)); }
+.lv-why { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.lv-why .neg { color: var(--accent-warm); }
+.lv-kv { display: grid; grid-template-columns: 90px 1fr; gap: 4px 10px; font-size: 12px; margin-top: 8px; }
+.lv-kv b { color: var(--text-muted); font-weight: 500; }
+.lv-ctx { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.lv-note { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin: 8px 0; }
+.lv-doc { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r); margin-bottom: 8px; }
+.lv-doc > summary { padding: 13px 14px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; }
+.lv-doc > summary::-webkit-details-marker { display: none; }
+.lv-doc > summary::after { content: '＋'; float: right; color: var(--accent); }
+.lv-doc[open] > summary::after { content: '－'; }
+.lv-doc .lv-body { padding: 0 14px 14px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
+.lv-doc h4 { font-size: 12px; color: var(--accent); margin: 12px 0 4px; font-family: 'Syne', sans-serif; }
+.lv-doc ul { padding-left: 18px; }
+.lv-doc table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 12px; }
+.lv-doc th, .lv-doc td { border: 1px solid var(--glass-border); padding: 5px 7px; text-align: left; vertical-align: top; }
+.lv-doc th { background: rgba(41,182,246,0.1); color: var(--text-primary); }
+.lv-doc .tbl { overflow-x: auto; }
 </style>
 </head>
 <body>
@@ -635,6 +660,96 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
     </div>
   </div>
 
+  <!-- LEURRES -->
+  <div class="screen" id="screen-leurres">
+    <div class="header">
+      <div class="header-top">
+        <h1>🎯 <span>Leurres</span></h1>
+      </div>
+      <div class="header-sub">Moteur de recherche météo + date + marée</div>
+    </div>
+    <div class="scroll">
+      <div class="section-title">Quand & où</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input class="form-input" type="date" id="lv-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Heure</label>
+          <input class="form-input" type="time" id="lv-heure">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Port de référence</label>
+        <select class="form-select" id="lv-port"></select>
+      </div>
+      <button type="button" class="btn btn-ghost" onclick="lvLoadWeather()" style="margin-bottom:6px">☁️ Charger la météo & la marée</button>
+      <div class="lv-note" id="lv-status">Météo : Open-Meteo (prévisions J+16, historique J-92). Tu peux corriger chaque valeur à la main.</div>
+
+      <div class="section-title">Conditions</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Eau (°C)</label><input class="form-input" type="number" step="0.5" id="lv-tw" placeholder="ex: 15"></div>
+        <div class="form-group"><label class="form-label">Vent (km/h)</label><input class="form-input" type="number" id="lv-vent" placeholder="ex: 15"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Pression (hPa)</label><input class="form-input" type="number" id="lv-pression" placeholder="ex: 1015"></div>
+        <div class="form-group"><label class="form-label">Houle (m)</label><input class="form-input" type="number" step="0.1" id="lv-houle" placeholder="ex: 0.4"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tendance pression</label>
+        <div class="chips" id="chips-lv-tend">
+          <div class="chip" data-val="hausse" onclick="selectChip(this,'chips-lv-tend')">↑ Hausse</div>
+          <div class="chip" data-val="stable" onclick="selectChip(this,'chips-lv-tend')">— Stable</div>
+          <div class="chip" data-val="baisse" onclick="selectChip(this,'chips-lv-tend')">↓ Baisse</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ciel</label>
+        <div class="chips" id="chips-lv-ciel">
+          <div class="chip" data-val="soleil" onclick="selectChip(this,'chips-lv-ciel')">☀️ Dégagé</div>
+          <div class="chip" data-val="variable" onclick="selectChip(this,'chips-lv-ciel')">🌤 Variable</div>
+          <div class="chip" data-val="couvert" onclick="selectChip(this,'chips-lv-ciel')">☁️ Couvert</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Eau (clarté)</label>
+        <div class="chips" id="chips-lv-turb">
+          <div class="chip" data-val="claire" onclick="selectChip(this,'chips-lv-turb')">💎 Claire</div>
+          <div class="chip" data-val="teintee" onclick="selectChip(this,'chips-lv-turb')">🟡 Teintée</div>
+          <div class="chip" data-val="trouble" onclick="selectChip(this,'chips-lv-turb')">🟤 Trouble</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Profondeur du poste</label>
+        <div class="chips" id="chips-lv-prof">
+          <div class="chip" data-val="3" onclick="selectChip(this,'chips-lv-prof')">&lt; 3 m</div>
+          <div class="chip" data-val="5" onclick="selectChip(this,'chips-lv-prof')">3 – 8 m</div>
+          <div class="chip" data-val="10" onclick="selectChip(this,'chips-lv-prof')">&gt; 8 m</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Coeff. marée</label><input class="form-input" type="number" id="lv-coef" placeholder="auto"></div>
+        <div class="form-group">
+          <label class="form-label">Phase</label>
+          <select class="form-select" id="lv-phase">
+            <option value="">Auto</option>
+            <option value="montante">Montante</option>
+            <option value="descendante">Descendante</option>
+            <option value="etale">Étale</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="lvSearch()" style="margin-bottom:16px">🔍 Quel leurre ? Quelle technique ?</button>
+
+      <div id="lv-results"></div>
+
+      <div class="section-title">Fiches techniques (golfe du Morbihan)</div>
+      <div id="lv-docs"></div>
+      <div style="height:8px"></div>
+    </div>
+  </div>
+
     <!-- SPOTS -->
   <div class="screen" id="screen-spots">
     <div class="header">
@@ -708,6 +823,10 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text-primary); }
     <div class="nav-item" id="nav-conseils" onclick="showScreen('conseils')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       Conseils
+    </div>
+    <div class="nav-item" id="nav-leurres" onclick="showScreen('leurres')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+      Leurres
     </div>
     <div class="nav-item" id="nav-spots" onclick="showScreen('spots')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -1283,6 +1402,438 @@ async function getReco() {
   }
 }
 
+// ===== LEURRES : moteur de recherche météo / date / marée =====
+const LV_DOCS = [
+  ['🎣 Principes (3 piliers)', `
+    <ul><li>Comprendre le <b>courant</b></li><li>Identifier les <b>structures</b></li><li>Adapter le leurre (<b>poids + animation</b>)</li></ul>
+    <p>Le leurre n'est qu'un outil : le <b>positionnement</b> est la clé. Le courant guide tout, la structure positionne le poisson, la descente déclenche l'attaque.</p>
+    <h4>Règle essentielle</h4>
+    <p>VOIR → silhouette / couleur (eau claire) · RESSENTIR → vibration / pression (eau trouble).</p>`],
+  ['🐟 Leurres souples (shad / slug / finesse)', `
+    <p><b>Rôle :</b> imitation naturelle, polyvalence totale, efficace même sur poisson éduqué.</p>
+    <div class="tbl"><table><tr><th>Condition</th><th>Type</th><th>Caractéristiques</th><th>Coloris</th></tr>
+    <tr><td>Eau claire</td><td>Shad discret / slug</td><td>silhouette fine, naturelle</td><td>naturel, translucide</td></tr>
+    <tr><td>Eau teintée</td><td>Shad paddle large</td><td>forte vibration</td><td>blanc, chartreuse, UV</td></tr>
+    <tr><td>Poissons méfiants</td><td>Slug / finesse</td><td>peu de vibration, planant</td><td>naturel</td></tr>
+    <tr><td>Poissons actifs</td><td>Shad classique</td><td>vibration + volume</td><td>naturel ou contrasté</td></tr></table></div>
+    <h4>Taille</h4>
+    <ul><li>Eau claire / pression forte : 8–10 cm</li><li>Standard Golfe : 10–12 cm</li><li>Courant fort / gros poissons : 12–14 cm</li></ul>
+    <h4>Couleurs</h4>
+    <ul><li>Eau claire, soleil : naturel / translucide</li><li>Eau teintée : blanc</li><li>Eau trouble / vent : chartreuse</li><li>Faible luminosité : contraste fort</li></ul>
+    <h4>Vibrations</h4><ul><li>Paddle large → eau sale / courant</li><li>Paddle fin → eau claire / discrétion</li></ul>
+    <h4>Animations</h4>
+    <div class="tbl"><table><tr><th>Type</th><th>Description</th><th>Quand</th></tr>
+    <tr><td>Dent de scie (référence)</td><td>montée lente, descente libre contrôlée — la touche vient surtout à la descente</td><td>standard (meilleur)</td></tr>
+    <tr><td>Linéaire contrôlé</td><td>vitesse lente, profondeur constante</td><td>prospection</td></tr>
+    <tr><td>Grattage technique</td><td>tirées courtes, contact permanent avec le fond</td><td>poissons posés / inactifs</td></tr>
+    <tr><td>Chute libre</td><td>descente naturelle</td><td>poissons passifs</td></tr>
+    <tr><td>Darting (slug)</td><td>coups secs latéraux</td><td>poissons actifs</td></tr></table></div>`],
+  ['⚡ Leurres durs (surface, minnow, jerkbait)', `
+    <p><b>Objectif :</b> déclencher l'attaque réflexe. Animation avancée : twitch irrégulier, pauses longues, changements de rythme (simule un poisson blessé).</p>
+    <div class="tbl"><table><tr><th>Leurre</th><th>Profondeur</th><th>Animation</th><th>Conditions / atout</th></tr>
+    <tr><td>Stickbait (surface)</td><td>0</td><td>walking the dog</td><td>eau calme / chasse — attaque visuelle</td></tr>
+    <tr><td>Popper</td><td>0</td><td>tirées + pauses</td><td>eau agitée / poissons apathiques — bruit, éclaboussures</td></tr>
+    <tr><td>Stickbait coulant</td><td>20–50 cm</td><td>twitch / jerks</td><td>poissons qui refusent la surface — polyvalent en mer agitée</td></tr>
+    <tr><td>Jerkbait minnow (bavette)</td><td>0,5–2 m</td><td>jerks + pauses</td><td>eau claire / poissons suiveurs — réalisme</td></tr>
+    <tr><td>Longbill minnow</td><td>jusqu'à 3 m</td><td>—</td><td>zones profondes / courant, houle, cassures — bonne tenue dans le courant</td></tr></table></div>
+    <h4>Surface : conditions optimales</h4><p>Mer calme, faible vent, activité visible. Cadence irrégulière, pauses prolongées : l'attaque a souvent lieu à l'arrêt.</p>
+    <h4>Réaction du bar</h4>
+    <div class="tbl"><table><tr><th>Situation</th><th>Réaction</th><th>Leurre</th></tr>
+    <tr><td>Chasse active</td><td>attaque réflexe</td><td>surface / minnow</td></tr>
+    <tr><td>Poissons suiveurs</td><td>hésitation</td><td>jerkbait</td></tr>
+    <tr><td>Refus en surface</td><td>—</td><td>stickbait coulant</td></tr>
+    <tr><td>Eau agitée</td><td>besoin d'un signal fort</td><td>popper</td></tr></table></div>`],
+  ['🪝 Jig', `<p><b>Utilisation :</b> courant fort, profondeur. <b>Technique :</b> laisser couler, tirées sèches, chute libre — l'attaque a lieu pendant la chute.</p>`],
+  ['⚖️ Poids / profondeur / temps de descente', `
+    <p>Le bon poids = <b>temps de descente contrôlé + contact avec le fond</b>. Bon réglage : descente de 3 à 8 s, fond contrôlé. Trop lent → hors zone ; trop rapide → pas naturel.</p>
+    <div class="tbl"><table><tr><th>Poids</th><th>3 m</th><th>5 m</th><th>8 m</th><th>10 m</th></tr>
+    <tr><td>5 g</td><td>3 s</td><td>5 s</td><td>7 s</td><td>9 s</td></tr>
+    <tr><td>10 g</td><td>2 s</td><td>4 s</td><td>6 s</td><td>7 s</td></tr>
+    <tr><td>15 g</td><td>2 s</td><td>3 s</td><td>5 s</td><td>6 s</td></tr>
+    <tr><td>20 g</td><td>1,5 s</td><td>3 s</td><td>4 s</td><td>5 s</td></tr>
+    <tr><td>25 g</td><td>1,5 s</td><td>2,5 s</td><td>4 s</td><td>4,5 s</td></tr></table></div>
+    <p>Conditions standard (peu de courant). <b>Ajustement courant :</b> +30 à 50 % de temps → courant modéré ; +50 à 100 % → courant fort.</p>`],
+  ['🌊 Marée, courant & zones', `
+    <h4>Règle des douzièmes appliquée</h4>
+    <ul><li>Début de marée → mise en mouvement</li><li>Milieu → courant maximum</li><li>Fin → ralentissement</li></ul>
+    <h4>Zones actives selon le courant</h4>
+    <ul><li>Faible → dispersion des poissons</li><li>Modéré → activité optimale</li><li>Fort → concentration</li></ul>
+    <h4>Marée & stratégie</h4>
+    <ul><li>Étale : pêche lente</li><li>Marée active : pêche dynamique</li></ul>`],
+  ['📍 Lecture des spots & comportement du bar', `
+    <h4>Positionnement du bar</h4><p>Toujours derrière un obstacle, en limite de courant, proche du fond.</p>
+    <h4>Zones clés</h4>
+    <ul><li><b>Pointe :</b> rupture de flux / poste d'embuscade</li><li><b>Cassure :</b> zone d'attaque</li><li><b>Chenal :</b> concentration alimentaire</li><li><b>Herbiers :</b> chasse à marée montante</li></ul>
+    <h4>Comportement</h4>
+    <p>Il économise son énergie, attaque de façon opportuniste et privilégie l'embuscade. Déclencheurs : courant, changement de luminosité, proies concentrées.</p>`],
+  ['🧭 Stratégie complète & sondeur', `
+    <h4>Séquence de pêche</h4><ol style="padding-left:18px"><li>Lecture du courant</li><li>Repérage de la structure</li><li>Choix du poids</li><li>Animation adaptée</li></ol>
+    <h4>Méthode pro</h4><p>Lancer en amont, dérive naturelle, contact fond, animation minimale.</p>
+    <h4>Sondeur</h4>
+    <ul><li>Analyser : densité au fond, cassures, présence de fourrage</li><li>Poisson isolé → opportunité · Banc → zone active</li></ul>`],
+  ['🌳 Arbre de décision (10 secondes)', `
+    <ul><li><b>1. Courant ?</b> non → surface / minnow · oui → shad · fort → jig</li>
+    <li><b>2. Visibilité ?</b> claire → naturel / discret · trouble → flashy / vibration</li>
+    <li><b>3. Comportement ?</b> actif → surface / minnow · neutre → shad · méfiant → slug / finesse</li>
+    <li><b>4. Profondeur ?</b> &lt; 3 m léger · 3–8 m moyen · &gt; 8 m lourd</li></ul>
+    <h4>Logique finale</h4>
+    <ul><li>Début de session : minnow / surface</li><li>Zone active : shad</li><li>Courant fort : shad lourd / jig</li><li>Poisson méfiant : slug</li><li>Poisson actif : surface</li></ul>
+    <p>Souples = contrôle + régularité · Durs = déclenchement + prospection.</p>`],
+  ['⚠️ Erreurs à éviter', `<ul><li>Changer trop souvent de leurre</li><li>Ignorer le courant</li><li>Mal lire le fond</li><li>Animation excessive</li></ul>
+    <p><b>Objectif :</b> maîtriser la descente, comprendre les zones, s'adapter en permanence.</p>`],
+  ['🌐 Compléments (recoupement internet)', `
+    <ul><li>Début de saison, eau fraîche : le bar bouge peu, souvent près du fond/structures → leurres souples à nage lente, animations non agressives (<a href="https://figaronautisme.meteoconsult.fr/actus-nautisme-loisirs/2026-02-23/85977-peche-au-bar-a-louverture-bien-choisir-ses-leurres-souples-pour-demarrer-la-saison" target="_blank" style="color:var(--accent)">Figaro Nautisme</a>).</li>
+    <li>Eau claire → leurres imitatifs ; eau chargée ou lumière faible → coloris plus contrastés (<a href="https://www.peche.com/article/52017/peche-aux-leurres-quelle-couleur-choisir-selon-l-eau-et-la-meteo" target="_blank" style="color:var(--accent)">peche.com</a>).</li>
+    <li>Les chutes de pression avant une perturbation sont de bons moments ; ciel couvert souvent meilleur que grand soleil (<a href="https://www.peche.com/article/40122/les-bonnes-conditions-pour-la-peche-cotiere-du-bar-et-la-selection-des-spots" target="_blank" style="color:var(--accent)">peche.com</a>).</li>
+    <li>Vent de terre : mer lissée, les bars se tiennent plus loin et plus profond.</li></ul>
+    <p class="lv-note">Ces sources donnent des principes, pas de table chiffrée : les pondérations du moteur sont une heuristique construite à partir de tes fiches et de ces principes. Vérifie toujours la réglementation en vigueur (taille minimale, quotas bar).</p>`],
+];
+
+function lvRenderDocs() {
+  document.getElementById('lv-docs').innerHTML = LV_DOCS.map(function(d) {
+    return '<details class="lv-doc"><summary>' + d[0] + '</summary><div class="lv-body">' + d[1] + '</div></details>';
+  }).join('');
+}
+
+// Température de l'eau moyenne par mois (Morbihan, ordre de grandeur) — repli si l'API marine ne répond pas
+const LV_TEMP_EAU_MOIS = [10, 9.5, 10, 11.5, 13.5, 16, 17.5, 18.5, 18, 16.5, 14, 11.5];
+
+function lvPad(n) { return String(n).padStart(2, '0'); }
+
+function lvInit() {
+  if (lvInit.done) return;
+  lvInit.done = true;
+  const now = new Date();
+  document.getElementById('lv-date').value = now.getFullYear() + '-' + lvPad(now.getMonth() + 1) + '-' + lvPad(now.getDate());
+  document.getElementById('lv-heure').value = lvPad(now.getHours()) + ':00';
+  const sel = document.getElementById('lv-port');
+  PORTS.forEach(function(p) {
+    const o = document.createElement('option');
+    o.value = p.nom; o.textContent = p.nom;
+    if (p.nom === selectedPort.nom) o.selected = true;
+    sel.appendChild(o);
+  });
+  lvRenderDocs();
+  lvLoadWeather();
+}
+
+function lvTargetDate() {
+  const d = document.getElementById('lv-date').value;
+  const h = document.getElementById('lv-heure').value || '12:00';
+  return { dateStr: d, hourStr: h, dt: new Date(d + 'T' + h) };
+}
+
+function lvSetChip(groupId, val) {
+  const g = document.getElementById(groupId);
+  g.querySelectorAll('.chip').forEach(function(c) { c.classList.toggle('selected', c.dataset.val === String(val)); });
+  chipState[groupId] = val == null ? null : String(val);
+}
+
+// Marée : phase, coefficient et courant relatif (règle des douzièmes) à un instant donné
+function lvTide(portNom, ts) {
+  const code = SHOM_CODES[PORTS.findIndex(function(p) { return p.nom === portNom; })] || 'PORT-NAVALO';
+  const corr = (PORT_CORRECTIONS[code] || 0) * 60000;
+  const ev = calcMareePortNavalo().map(function(e) { return { type: e.type, time: e.time + corr, coef: e.coef }; });
+  let prev = null, next = null;
+  for (let i = 0; i < ev.length; i++) {
+    if (ev[i].time <= ts) prev = ev[i]; else { next = ev[i]; break; }
+  }
+  if (!prev || !next) return null;
+  const f = (ts - prev.time) / (next.time - prev.time);
+  const idx = Math.min(5, Math.floor(f * 6)); // 0..5 = 1ère..6e sixième
+  const pm = prev.type === 'PM' ? prev : next;
+  const pmAfter = ev.filter(function(e) { return e.type === 'PM' && Math.abs(e.time - ts) < 7 * 3600000; })
+    .sort(function(a, b) { return Math.abs(a.time - ts) - Math.abs(b.time - ts); })[0] || pm;
+  return {
+    phase: prev.type === 'BM' ? 'montante' : 'descendante',
+    coef: pmAfter.coef,
+    sixieme: idx + 1,
+    mult: [1/3, 2/3, 1, 1, 2/3, 1/3][idx],
+    nearEtale: f < 0.08 || f > 0.92
+  };
+}
+
+async function lvLoadWeather() {
+  const st = document.getElementById('lv-status');
+  const t = lvTargetDate();
+  if (!t.dateStr || isNaN(t.dt)) { st.textContent = 'Choisis une date valide.'; return; }
+  const port = PORTS.find(function(p) { return p.nom === document.getElementById('lv-port').value; }) || PORTS[0];
+  st.textContent = '⏳ Chargement de la météo…';
+
+  // Marée (calcul local)
+  const td = lvTide(port.nom, t.dt.getTime());
+  if (td) {
+    if (td.coef) document.getElementById('lv-coef').value = td.coef;
+    document.getElementById('lv-phase').value = td.nearEtale ? 'etale' : td.phase;
+  }
+
+  let got = [], miss = [];
+  const dayMs = 86400000;
+  const prevDay = new Date(t.dt.getTime() - dayMs);
+  const ds = function(d) { return d.getFullYear() + '-' + lvPad(d.getMonth() + 1) + '-' + lvPad(d.getDate()); };
+  const key = t.dateStr + 'T' + t.hourStr.slice(0, 2) + ':00';
+  const key3 = ds(new Date(t.dt.getTime() - 3 * 3600000)) + 'T' + lvPad(new Date(t.dt.getTime() - 3 * 3600000).getHours()) + ':00';
+
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + port.lat + '&longitude=' + port.lng +
+      '&hourly=temperature_2m,cloud_cover,wind_speed_10m,pressure_msl&wind_speed_unit=kmh&timezone=Europe%2FParis&start_date=' + ds(prevDay) + '&end_date=' + t.dateStr;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('meteo ' + r.status);
+    const j = await r.json();
+    const i = j.hourly.time.indexOf(key), i3 = j.hourly.time.indexOf(key3);
+    if (i < 0) throw new Error('hors plage');
+    document.getElementById('lv-vent').value = Math.round(j.hourly.wind_speed_10m[i]);
+    const p = j.hourly.pressure_msl[i];
+    document.getElementById('lv-pression').value = Math.round(p);
+    if (i3 >= 0) {
+      const dp = p - j.hourly.pressure_msl[i3];
+      lvSetChip('chips-lv-tend', dp > 1 ? 'hausse' : dp < -1 ? 'baisse' : 'stable');
+    }
+    const cc = j.hourly.cloud_cover[i];
+    lvSetChip('chips-lv-ciel', cc < 25 ? 'soleil' : cc < 70 ? 'variable' : 'couvert');
+    got.push('vent, pression, ciel');
+  } catch (e) { miss.push('météo (saisie manuelle)'); }
+
+  try {
+    const url = 'https://marine-api.open-meteo.com/v1/marine?latitude=' + port.lat + '&longitude=' + port.lng +
+      '&hourly=wave_height,sea_surface_temperature&timezone=Europe%2FParis&start_date=' + t.dateStr + '&end_date=' + t.dateStr;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('marine ' + r.status);
+    const j = await r.json();
+    const i = j.hourly.time.indexOf(key);
+    const tw = i >= 0 ? j.hourly.sea_surface_temperature[i] : null;
+    const wh = i >= 0 ? j.hourly.wave_height[i] : null;
+    if (tw != null) { document.getElementById('lv-tw').value = tw.toFixed(1); got.push('eau'); } else throw new Error('null');
+    if (wh != null) document.getElementById('lv-houle').value = wh.toFixed(1);
+  } catch (e) {
+    document.getElementById('lv-tw').value = LV_TEMP_EAU_MOIS[t.dt.getMonth()];
+    miss.push('température d\'eau estimée par saison');
+  }
+
+  st.textContent = (td ? '✅ Marée : ' + td.phase + ', coeff ' + (td.coef || '?') + ' · ' : '') + (got.length ? 'Chargé : ' + got.join(', ') : '') + (miss.length ? ' · ⚠️ ' + miss.join(' ; ') : '') + '. Ajuste si besoin puis lance la recherche.';
+  lvSearch();
+}
+
+// Lumière : jour / transition (aube-crépuscule ±1 h) / nuit — approximation astronomique pour ~47,5°N
+function lvLight(dt) {
+  const start = new Date(dt.getFullYear(), 0, 0);
+  const doy = Math.floor((dt - start) / 86400000);
+  const dayLen = 12 + 3.7 * Math.sin(2 * Math.PI * (doy - 80) / 365);
+  const noonUTC = 12.23;
+  const hUTC = dt.getUTCHours() + dt.getUTCMinutes() / 60;
+  const rise = noonUTC - dayLen / 2, set = noonUTC + dayLen / 2;
+  if (Math.abs(hUTC - rise) <= 1 || Math.abs(hUTC - set) <= 1) return 'transition';
+  if (hUTC < rise || hUTC > set) return 'nuit';
+  return 'jour';
+}
+
+const LV_CATALOGUE = [
+  { nom: 'Shad en dent de scie', fam: 'Souple · référence', emoji: '🐟', jig: true, base: 62,
+    anim: 'Montée lente, descente libre contrôlée : la touche vient à la descente.',
+    fn: function(c, a) {
+      if (c.courant === 'modere') a(12, 'courant modéré : zone optimale pour le shad');
+      else if (c.courant === 'faible') a(4);
+      else if (c.courant === 'fort') a(-4, 'courant fort : alourdir la tête plombée');
+      if (c.turb === 'trouble') a(6, 'eau trouble : le paddle émet de la vibration');
+      if (c.tw < 12) a(6, 'eau froide : animation lente en dent de scie');
+      if (c.tend === 'baisse') a(4);
+      if (c.prof >= 5 && c.prof < 10) a(6, 'profondeur moyenne : terrain idéal');
+    } },
+  { nom: 'Shad linéaire / grattage', fam: 'Souple · lent', emoji: '🐠', jig: true, base: 48,
+    anim: 'Récupération lente et constante, ou tirées courtes avec contact fond (grattage) sur poissons posés.',
+    fn: function(c, a) {
+      if (c.tw < 12) a(14, 'eau froide : poisson passif, vitesse lente');
+      if (c.turb === 'claire') a(6);
+      if (c.courant === 'fort') a(-12, 'courant fort : peu adapté');
+      if (c.courant === 'nul') a(8, 'étale : pêche lente');
+      if (c.prof < 5) a(8);
+    } },
+  { nom: 'Slug / finesse', fam: 'Souple · poisson méfiant', emoji: '🪱', jig: true, base: 46,
+    anim: 'Planant, peu de vibration ; darting (coups secs latéraux) si poissons actifs.',
+    fn: function(c, a) {
+      if (c.turb === 'claire') a(14, 'eau claire : discrétion et silhouette naturelle');
+      if (c.ciel === 'soleil' && c.lum === 'jour') a(10, 'grand soleil : poissons méfiants');
+      if (c.tend === 'hausse') a(8, 'pression en hausse : poisson plus méfiant');
+      if (c.turb === 'trouble') a(-18, 'eau trouble : trop discret');
+      if (c.vent === 'fort') a(-8);
+      if (c.tw < 12) a(6);
+      if (c.courant === 'nul') a(10, 'étale : présentation lente');
+    } },
+  { nom: 'Jerkbait minnow (bavette)', fam: 'Dur · 0,5–2 m', emoji: '🎯', base: 40,
+    anim: 'Jerks + longues pauses, rythme irrégulier : l\'attaque vient souvent à l\'arrêt.',
+    fn: function(c, a) {
+      if (c.courant === 'faible' || c.courant === 'nul') a(14, 'peu de courant : minnow / surface (arbre de décision)');
+      if (c.turb === 'claire') a(14, 'eau claire : poissons suiveurs, réalisme');
+      if (c.prof < 5) a(14, 'poste peu profond : nage 0,5–2 m');
+      if (c.prof >= 10) a(-20, 'trop profond pour une nage 0,5–2 m');
+      if (c.turb === 'trouble') a(-16, 'eau trouble : peu visible');
+      if (c.lum === 'transition') a(12, 'aube / crépuscule : bar en chasse');
+      if (c.tw >= 13) a(8); else if (c.tw < 11) a(-10, 'eau froide : poisson peu réactif');
+      if (c.vent === 'fort') a(-14, 'vent fort : présentation difficile');
+    } },
+  { nom: 'Longbill minnow', fam: 'Dur · jusqu\'à 3 m', emoji: '🏊', base: 36,
+    anim: 'Nage lente, tient dans le courant ; bon sur cassures et zones profondes.',
+    fn: function(c, a) {
+      if (c.prof >= 5) a(c.prof >= 10 ? 14 : 8, 'poste profond : descend jusqu\'à 3 m');
+      else a(-14, 'poste peu profond');
+      if (c.courant === 'fort') a(8, 'bonne tenue dans le courant');
+      if (c.houle > 1) a(10, 'houle : bonne tenue');
+      if (c.vent === 'fort') a(8);
+      if (c.turb === 'claire') a(6);
+      if (c.turb === 'trouble') a(-8);
+    } },
+  { nom: 'Stickbait coulant', fam: 'Dur · subsurface 20–50 cm', emoji: '🗡️', base: 38,
+    anim: 'Twitches / jerks en subsurface, pauses courtes.',
+    fn: function(c, a) {
+      if (c.vent === 'modere' || c.vent === 'fort') a(14, 'mer agitée : polyvalent, bien visible');
+      if (c.houle > 0.8) a(8);
+      if (c.turb === 'claire') a(6);
+      if (c.tw >= 13) a(6); else if (c.tw < 11) a(-8);
+      if (c.lum === 'nuit') a(6);
+      if (c.prof < 5) a(6);
+      if (c.tend !== 'baisse') a(4, 'poissons qui refusent la surface');
+    } },
+  { nom: 'Popper', fam: 'Surface · bruit', emoji: '💥', base: 22,
+    anim: 'Tirées + pauses : bruit et éclaboussures pour déclencher l\'agressivité.',
+    fn: function(c, a) {
+      if (c.tw >= 15) a(16, 'eau chaude : bar actif en surface'); else if (c.tw < 13) a(-25, 'eau trop froide pour la surface');
+      if (c.lum !== 'jour') a(16, 'aube / crépuscule / nuit : surface très efficace');
+      if (c.ciel === 'couvert') a(8, 'ciel couvert : bar remonté');
+      if (c.vent === 'modere') a(10, 'eau agitée : il faut un signal fort');
+      else if (c.vent === 'fort') a(-16);
+      if (c.turb === 'trouble') a(6);
+      if (c.courant === 'modere' || c.courant === 'fort') a(8);
+      if (c.prof >= 10) a(-20);
+      if (c.tend === 'baisse') a(8, 'pression en baisse : bar en alimentation');
+    } },
+  { nom: 'Stickbait de surface (walking)', fam: 'Surface · walking the dog', emoji: '🌊', base: 22,
+    anim: 'Walking the dog, cadence irrégulière, pauses prolongées.',
+    fn: function(c, a) {
+      if (c.tw >= 15) a(16, 'eau chaude : bar actif en surface'); else if (c.tw < 13) a(-25, 'eau trop froide pour la surface');
+      if (c.vent === 'faible') a(16, 'mer calme : conditions optimales'); else if (c.vent === 'fort') a(-20);
+      if (c.houle < 0.5) a(8);
+      if (c.lum === 'transition') a(14, 'aube / crépuscule : chasse en surface');
+      if (c.turb === 'claire') a(8); else if (c.turb === 'trouble') a(-14);
+      if (c.courant === 'faible') a(6);
+      if (c.prof >= 10) a(-18);
+      if (c.tend === 'baisse') a(6);
+    } },
+  { nom: 'Jig / shad lourd', fam: 'Souple/Métal · profondeur & courant', emoji: '⚓', jig: true, base: 32,
+    anim: 'Laisser couler, tirées sèches, chute libre : l\'attaque a lieu pendant la chute.',
+    fn: function(c, a) {
+      if (c.courant === 'fort') a(28, 'courant fort : il faut du poids (arbre de décision)');
+      if (c.prof >= 10) a(22, 'poste profond');
+      else if (c.prof >= 5) a(6);
+      else a(-16, 'poste peu profond');
+      if (c.courant === 'nul') a(-10, 'étale : trop lourd / pas utile');
+      if (c.tw < 11) a(6, 'eau froide : poisson posé au fond');
+    } },
+];
+
+function lvBuildCtx() {
+  const t = lvTargetDate();
+  const num = function(id, def) { const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? def : v; };
+  const c = {
+    dt: t.dt,
+    tw: num('lv-tw', LV_TEMP_EAU_MOIS[t.dt.getMonth()]),
+    ventKmh: num('lv-vent', 12),
+    pression: num('lv-pression', 1015),
+    houle: num('lv-houle', 0.3),
+    tend: getChip('chips-lv-tend') || 'stable',
+    ciel: getChip('chips-lv-ciel') || 'variable',
+    turb: getChip('chips-lv-turb') || (num('lv-houle', 0.3) > 1.5 ? 'trouble' : 'claire'),
+    prof: parseFloat(getChip('chips-lv-prof')) || 5,
+    coef: num('lv-coef', 70),
+    phase: document.getElementById('lv-phase').value || null,
+    lum: lvLight(t.dt)
+  };
+  c.vent = c.ventKmh < 12 ? 'faible' : c.ventKmh < 25 ? 'modere' : 'fort';
+  const port = document.getElementById('lv-port').value;
+  const td = lvTide(port, t.dt.getTime());
+  if (!c.phase && td) c.phase = td.nearEtale ? 'etale' : td.phase;
+  c.sixieme = td ? td.sixieme : 3;
+  const mult = c.phase === 'etale' ? 0.05 : (td ? td.mult : 0.7);
+  const amp = c.coef / 100 * mult;
+  c.courant = amp < 0.12 ? 'nul' : amp < 0.3 ? 'faible' : amp < 0.6 ? 'modere' : 'fort';
+  return c;
+}
+
+function lvColor(c) {
+  if (c.lum === 'nuit') return 'noir / violet foncé ou blanc nacré (silhouette contrastée)';
+  if (c.turb === 'trouble' || c.vent === 'fort') return 'chartreuse, jaune fluo / UV (contraste fort)';
+  if (c.turb === 'teintee') return 'blanc (ou chartreuse si lumière faible)';
+  if (c.ciel === 'couvert' || c.lum === 'transition') return 'contraste fort : blanc nacré, rose, chartreuse léger';
+  return 'naturel / translucide (sardine, anchois, ghost)';
+}
+
+function lvSize(c) {
+  if (c.courant === 'fort') return '12–14 cm';
+  if (c.turb === 'claire' && c.tw < 13) return '8–10 cm';
+  return '10–12 cm';
+}
+
+// Table de descente (s) : [poids g, [3m, 5m, 8m, 10m]]
+const LV_DESCENTE = [[5, [3, 5, 7, 9]], [10, [2, 4, 6, 7]], [15, [2, 3, 5, 6]], [20, [1.5, 3, 4, 5]], [25, [1.5, 2.5, 4, 4.5]]];
+function lvWeight(c) {
+  const col = c.prof <= 3 ? 0 : c.prof <= 5 ? 1 : c.prof <= 8 ? 2 : 3;
+  const mult = c.courant === 'fort' ? 1.75 : c.courant === 'modere' ? 1.4 : 1;
+  for (let i = 0; i < LV_DESCENTE.length; i++) {
+    const t = LV_DESCENTE[i][1][col] * mult;
+    if (t <= 6) return { g: LV_DESCENTE[i][0], t: t };
+  }
+  const last = LV_DESCENTE[LV_DESCENTE.length - 1];
+  return { g: last[0] + '+', t: last[1][col] * mult };
+}
+
+function lvSeason(m) {
+  if (m <= 1 || m === 11) return 'Hiver : eau froide, bar posé et peu actif → souples lents (linéaire, grattage), jig sur les postes profonds.';
+  if (m <= 4) return 'Printemps : eau encore fraîche, poissons posés → shad/slug lents ; la surface démarre quand l\'eau dépasse ~14–15 °C.';
+  if (m <= 8) return 'Été : eau chaude, bar actif à l\'aube/crépuscule → surface et minnow, shad sur les cassures en journée.';
+  return 'Automne : bars en chasse sur le fretin → surface/minnow le matin et le soir, shad dans le courant.';
+}
+
+function lvSearch() {
+  const c = lvBuildCtx();
+  const res = LV_CATALOGUE.map(function(l) {
+    let s = l.base; const pos = [], neg = [];
+    l.fn(c, function(p, why) { s += p; if (why) (p >= 0 ? pos : neg).push(why); });
+    return { l: l, s: Math.max(0, Math.min(100, Math.round(s))), pos: pos, neg: neg };
+  }).sort(function(a, b) { return b.s - a.s; });
+
+  const w = lvWeight(c);
+  const col = lvColor(c), size = lvSize(c);
+  const courantTxt = { nul: 'quasi nul (étale)', faible: 'faible', modere: 'modéré', fort: 'fort' }[c.courant];
+  const lumTxt = { jour: 'jour', transition: 'aube/crépuscule', nuit: 'nuit' }[c.lum];
+  let h = '<div class="lv-ctx">' +
+    ['🌡 eau ' + c.tw + '°C', '💨 ' + c.ventKmh + ' km/h', '🌊 courant ' + courantTxt, '🕒 ' + lumTxt, '⚓ coeff ' + c.coef + (c.phase ? ' · ' + c.phase : '') + ' (' + c.sixieme + '/6)']
+      .map(function(x) { return '<span class="badge badge-blue">' + x + '</span>'; }).join('') + '</div>';
+
+  res.slice(0, 4).forEach(function(r, i) {
+    const l = r.l;
+    h += '<div class="lv-card"' + (i === 0 ? ' style="border-color:rgba(41,182,246,0.5)"' : '') + '>' +
+      '<div class="lv-top"><div><div class="lv-name">' + (i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : '') + l.emoji + ' ' + l.nom + '</div><div class="lv-fam">' + l.fam + '</div></div>' +
+      '<span class="badge badge-score">' + r.s + '</span></div>' +
+      '<div class="lv-bar"><i style="width:' + r.s + '%"></i></div>' +
+      '<div class="lv-why">' + r.pos.slice(0, 3).map(function(x) { return '✓ ' + x; }).join('<br>') +
+      (r.neg.length ? '<br>' + r.neg.slice(0, 2).map(function(x) { return '<span class="neg">⚠ ' + x + '</span>'; }).join('<br>') : '') + '</div>' +
+      '<div class="lv-kv"><b>Animation</b><span>' + l.anim + '</span>' +
+      (l.jig ? '<b>Taille</b><span>' + size + '</span><b>Tête plombée</b><span>~' + w.g + ' g (descente ≈ ' + (Math.round(w.t * 10) / 10) + ' s sur ' + (c.prof >= 10 ? '8–10' : c.prof >= 5 ? '3–8' : '≤ 3') + ' m)</span>' : '') +
+      '<b>Coloris</b><span>' + col + '</span></div></div>';
+  });
+
+  h += '<div class="section-title">Où et quand pêcher</div><div class="lv-card"><div class="lv-why">';
+  h += (c.courant === 'nul' ? '• Étale : pêche lente, attends la reprise du courant.<br>' :
+        c.courant === 'faible' ? '• Courant faible : poissons dispersés, prospecte large.<br>' :
+        c.courant === 'modere' ? '• Courant modéré : activité optimale, pêche dynamique.<br>' :
+        '• Courant fort : poissons concentrés derrière les obstacles, lance en amont et laisse dériver.<br>');
+  h += '• Placement : derrière un obstacle, en limite de courant, près du fond (pointe, cassure, chenal, herbiers à marée montante).<br>';
+  if (c.tend === 'baisse') h += '• Pression en baisse : bon moment avant la perturbation.<br>';
+  if (c.vent === 'fort' || c.houle > 1.5) h += '• Mer agitée : privilégie un spot abrité et des leurres qui tiennent.<br>';
+  h += '• ' + lvSeason(c.dt.getMonth()) + '</div></div>';
+  h += '<div class="lv-note">Classement indicatif (heuristique fiches + principes généraux), pas une garantie de prise. Adapte-toi à ce que fait le poisson.</div>';
+  document.getElementById('lv-results').innerHTML = h;
+}
+
 // NAVIGATION
 let shomLoaded = false;
 function showScreen(name) {
@@ -1294,6 +1845,7 @@ function showScreen(name) {
   if (name === 'historique') loadHistorique();
   if (name === 'spots') loadSpotsScreen();
   if (name === 'session') updateSessionDate();
+  if (name === 'leurres') lvInit();
 
   window.scrollTo(0, 0);
 }
